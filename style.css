@@ -1,0 +1,264 @@
+/* ---------- Fonts ----------
+   Medium uses Charter (serif) for body text and Sohne (sans) for UI/headings.
+   Charter ships with macOS/iOS; Source Serif 4 is the web fallback.
+------------------------------ */
+
+:root {
+  --serif: charter, "Charter", "Source Serif 4", Georgia, Cambria, "Times New Roman", serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --text: rgba(41, 41, 41, 1);
+  --muted: rgba(117, 117, 117, 1);
+  --rule: rgba(230, 230, 230, 1);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--text);
+  font-family: var(--serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Nav bar ---------- */
+
+.nav {
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--sans);
+}
+
+.nav-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+  text-decoration: none;
+  margin-right: auto;
+}
+
+.nav a.nav-link {
+  font-size: 15px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav a.nav-link:hover,
+.nav a.nav-link.active { color: var(--text); }
+
+/* ---------- Post container ---------- */
+
+.post {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 56px 24px 120px;
+}
+
+/* ---------- Title block ---------- */
+
+.post-title {
+  font-family: var(--sans);
+  font-size: 42px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  margin: 0 0 12px;
+}
+
+.post-subtitle {
+  font-family: var(--sans);
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 400;
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+
+.post-meta {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 48px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ---------- Byline (avatar + name) ---------- */
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 48px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.avatar {
+  width: 35px;
+  height: 35px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.byline .post-meta {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* ---------- Headers ---------- */
+
+h2 {
+  font-family: var(--sans);
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  margin: 52px 0 -8px;
+}
+
+h3 {
+  font-family: var(--sans);
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  margin: 40px 0 -10px;
+  color: rgba(41, 41, 41, 0.9);
+}
+
+/* ---------- Paragraphs ---------- */
+
+p {
+  font-size: 20px;
+  line-height: 1.6;
+  letter-spacing: -0.003em;
+  margin: 28px 0 0;
+}
+
+p a { color: inherit; text-decoration: underline; }
+
+em { font-style: italic; }
+strong { font-weight: 600; }
+
+/* ---------- Figures ---------- */
+
+figure {
+  margin: 44px 0 0;
+}
+
+figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+figcaption {
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+  margin-top: 10px;
+  text-align: left;
+}
+
+/* Side-by-side images: <div class="figure-row"> with figures inside */
+
+.figure-row {
+  display: flex;
+  gap: 16px;
+  margin: 44px 0 0;
+}
+
+.figure-row figure { margin: 0; flex: 1; }
+
+/* ---------- Carousel: <div class="carousel"> holding several figures ---------- */
+
+.carousel {
+  position: relative;
+  margin: 44px 0 0;
+}
+
+.carousel figure { margin: 0; }
+
+.carousel figure[hidden] { display: none; }
+
+/* Leave room on the caption line for the controls */
+.carousel figcaption { padding-right: 96px; }
+
+.carousel-controls {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.carousel-controls button {
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+.carousel-controls button:hover { color: var(--text); }
+
+.carousel-counter { min-width: 40px; text-align: center; }
+
+/* ---------- Misc ---------- */
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 48px 0;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 16px;
+  overflow-x: auto;
+  margin: 32px 0 0;
+  border-radius: 15px;
+}
+
+pre code { background: none; padding: 0; }
+
+@media (max-width: 600px) {
+  .post { padding: 36px 20px 80px; }
+  .post-title { font-size: 32px; }
+  .post-subtitle { font-size: 19px; }
+  h2 { font-size: 25px; }
+  h3 { font-size: 20px; }
+  p { font-size: 18px; }
+  .figure-row { flex-direction: column; }
+}

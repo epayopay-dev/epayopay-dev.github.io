@@ -1,15 +1,236 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Project 1</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project 1 &middot; CS 180 Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
 </head>
 <body>
-    <h1>balls</h1>
+
+<!-- ===== NAV (same on every page; change the href depth per folder) ===== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-title" href="../index.html">CS 180 Portfolio</a>
+    <a class="nav-link active" href="./index.html">Project 1</a>
+  </div>
+</nav>
+
+<main class="post">
+
+  <!-- ===== TITLE BLOCK ===== -->
+  <h1 class="post-title">Project 1: Images of the Russian Empire</h1>
+  <p class="post-subtitle">Colorizing the Prokudin-Gorskii photo collection.</p>
+  <div class="byline">
+    <p class="post-meta">Erson Payopay</p>
+    <img class="avatar" src="../images/me.jpg" alt="Erson Payopay">
+  </div>
+
+  <!-- ===== PARAGRAPH ===== -->
+  <p>Write body text here. Paragraphs are set in Charter at 20px, the same
+  measure Medium uses, so a line lands at roughly 80 characters. You can use
+  <em>italics</em>, <strong>bold</strong>, inline <code>code</code>, and
+  <a href="#">links</a> inside a paragraph without extra classes.</p>
+
+  <h2>The Premise</h2>
+  <p>For this assignment, this one guy Prokudin-Gorskii took a bunch of photos. 
+  These photos are supposed to be in color. To do this he took three photos, 
+    each with a red, green, or blue filter. The original photo looks like this: </p>
+
+  <img src="images/cathedralraw.png" style="max-width: 300px; height: auto; display: block; margin: 0 auto;">
+
+  <p>It's pretty messy. The borders are inconsistent, and
+    there are a bunch of speckles everywhere. Our job is to line up these 3 images together
+    so it looks pretty and all the colors match up!</p>
+
+  <h2>The Approach</h2>
+
+  <p>So how can we line the images up? Well first we have to split the raw image into 3. Once we split them up,
+    we can align them according to the blue image. Then, we create some sort of algorithm to align them.
+    Finally, we can stack the images together and output that as an RGB image. <br><br>
+
+    Thankfully, the starter code does the first and last part for us already. Breaking the image into 3, and stacking them all at the end.
+    I just have to create some sort of algorithm for aligning. 
+  </p>
+
+  <h3>Aligning</h3>
+
+  <p>Well, how do you align two images? As it suggests in the <a href="https://cal-cs180.github.io/fa26/hw/proj1/index.html">project page</a>,
+  we iterate through all the pixel displacements and we use some sort of metric to see how well they match. The metric I chose was taking the L2 norm of the difference
+  between the two images (as suggested from the project page). Basically finding how far the images are from each other! We can iterate through all the displacements, 
+  save the displacement with the least distance, then output that. <br><br>
+
+  After some deliberation, the algorithm I came up with looks like this:<br><br>
+
+  <img src="images/codes.png" style="max-width: 600px; height: auto;"><br><br>
+
+  Alright, let's see how the images look:
+  <br><br>
+  <img src="images/cathedralhorrible.png" style="max-width: 600px; height: auto;">
+
+  <br><br>
+  Oh God! Its hideous! There's actually a couple of things I'm doing wrong in my algorithm, do you see them?<br><br>
+
+  First of all, I'm not cropping the image, meaning my norm is taking into account the giant misaligned black borders - not good.
+  Second of all, there's a huge error on line 46. On that line I use temp_matrix to iterate through the x displacements. I initially 
+  set temp_matrix to a (has 0 displacement), but my range begins at an x displacement of -15. This means that if the optimal x displacement
+  is 0, it will be logged at -15. You can see this happening in the picture, where y is aligned it's just x which has a bad displacement.
+  <br><br>
+
+  I eventually fix that error in this algorithm here:<br><br>
+  <img src="images/notempmatrix.png" style="max-width: 600px; height: auto;"><br><br>
+  Although I didn't add cropping yet (oops forgot to document), I iterate over x and y in the same step, resulting in this: <br><br>
+
+  <img src="images/cathedralnotasbad.png" style="max-width: 600px; height: auto;"><br><br>
+
+  It's still a little off, but its much more aligned here. At this point though I was sort of lost, I already added cropping and fixed my bug. 
+  I knew the cathedral should be aligned by now using simple metrics. It was here I decided to swtich my comparison. Instead of taking the L2 norm,
+  I decided to take the normalized cross correlation, resulting in this algorithm:<br><br>
+
+  <pre><code>def align(a, b, xd=15, yd=15, crop_percent=0.10):
+  # crop b on all sides
+  cropped_b = crop_image(b, crop_percent)
+
+  best_ncc_seen = -np.inf
+  best_xd = 0
+  best_yd = 0
+
+  # iterate over differences in x & y, take the ncc, and keep track of the best ncc seen so far
+  for i in range(-xd, xd):
+      for j in range(-yd, yd):
+          # make sure to roll image before cropping
+          curr_ncc = ncc(crop_image(np.roll(a, shift=(j, i), axis=(0, 1)), crop_percent), cropped_b)
+
+          #debugging print statements
+          print(f"best_norm_seen: {best_ncc_seen}")
+          print(f"{best_yd}, {best_xd}")
+          #print(f"{j, i}")
+          #print(curr_norm)
+          if curr_ncc > best_ncc_seen:
+              best_ncc_seen = curr_ncc
+              best_yd = j
+              best_xd = i
+
+  return (best_yd, best_xd)</code></pre><br>
+  </p>
+
+  <p>I also implemented some helper functions here:<br><br></p>
+  <pre><code># helper functions
+def ncc(a, b):
+    a_flat = a.flatten()
+    b_flat = b.flatten()
+
+    a_mean = np.mean(a_flat)
+    b_mean = np.mean(b_flat)
+
+    norm_a = a_flat - a_mean
+    norm_b = b_flat - b_mean
+
+    numerator = np.sum(norm_a * norm_b)
+    denominator = np.sqrt(np.sum(norm_a**2) * np.sum(norm_b**2))
+
+    ncc = numerator / denominator
+
+    return ncc
+
+def crop_image(a, crop_percent):
+    crop_distance = int(np.size(a, axis=0) * crop_percent)
+    return a[crop_distance:np.size(a, axis=0) - crop_distance, crop_distance:np.size(a, axis=1) - crop_distance]
+
+def roll_image(a, xy):
+    return np.roll(a, shift=xy, axis=(0, 1))</code></pre>
+
+  <p>Finally the images are aligned! Check them out! I also corrected the color order when stacking, which I didn't notice since I was too busy aligning.
+    <br><br>Calculated alignments are in the footers. (y, x) 
+  </p>
+
+  <h3>Aligned images!</h3>
+
+  <div class="carousel">
+    <figure>
+      <img src="images/cathedral.jpg" alt="Slide 1">
+      <figcaption>Red: (12, 3), Green: (5, 2)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/monastery.jpg" alt="Slide 2">
+      <figcaption>Red: (3, 2), Green: (-3, 2)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/tobolsk.jpg" alt="Slide 3">
+      <figcaption>Red: (6, 3), Green: (3, 3)</figcaption>
+    </figure>
+  </div>
+
+  <br><br>
+
+  <h2>Image Pyramids!</h2>
+
+  <p></p>
+
+  <!-- ===== SECTION HEADER ===== -->
+  <h2>Part 1: Section header</h2>
+
+  <p>Every <code>&lt;p&gt;</code>, <code>&lt;h2&gt;</code>, and
+  <code>&lt;h3&gt;</code> is styled globally, so you only ever paste the bare
+  tag. Spacing between blocks is handled by the stylesheet.</p>
+
+  <h3>A subsection header</h3>
+
+  <p>Use <code>&lt;h3&gt;</code> for smaller steps inside a part.</p>
+
+  <!-- ===== IMAGE WITH FOOTNOTE ===== -->
+  <figure>
+    <img src="./images/example.jpg" alt="Describe the image here">
+    <figcaption>A short footnote under the image, left-aligned and gray.</figcaption>
+  </figure>
+
+  <p>Drop image files into <code>Project_1/images/</code> and point
+  <code>src</code> at them.</p>
+
+  <!-- ===== TWO IMAGES SIDE BY SIDE ===== -->
+  <div class="figure-row">
+    <figure>
+      <img src="./images/example.jpg" alt="Left image">
+      <figcaption>Left: before alignment.</figcaption>
+    </figure>
+    <figure>
+      <img src="./images/example.jpg" alt="Right image">
+      <figcaption>Right: after alignment.</figcaption>
+    </figure>
+  </div>
+
+  <!-- ===== IMAGE CAROUSEL (each figure = one slide with its own footnote) ===== -->
+  <div class="carousel">
+    <figure>
+      <img src="./images/example.jpg" alt="Slide 1">
+      <figcaption>First slide: raw channels.</figcaption>
+    </figure>
+    <figure>
+      <img src="./images/example.jpg" alt="Slide 2">
+      <figcaption>Second slide: after single-scale alignment.</figcaption>
+    </figure>
+    <figure>
+      <img src="./images/example.jpg" alt="Slide 3">
+      <figcaption>Third slide: after pyramid alignment.</figcaption>
+    </figure>
+  </div>
+
+  <!-- ===== CODE BLOCK ===== -->
+  <pre><code>def align(a, b):
+    return np.roll(a, best_shift(a, b), axis=(0, 1))</code></pre>
+
+  <!-- ===== SECTION DIVIDER ===== -->
+  <hr>
+
+  <h2>Part 2: Another section</h2>
+
+  <p>Copy any block above and edit the text. That is the whole system.</p>
+
+</main>
+
+<script src="../script.js"></script>
 </body>
 </html>
