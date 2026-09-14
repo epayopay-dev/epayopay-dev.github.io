@@ -29,11 +29,13 @@
     <img class="avatar" src="../images/me.jpg" alt="Erson Payopay">
   </div>
 
-  <!-- ===== PARAGRAPH ===== -->
+  <!--
+  ===== PARAGRAPH =====
   <p>Write body text here. Paragraphs are set in Charter at 20px, the same
   measure Medium uses, so a line lands at roughly 80 characters. You can use
   <em>italics</em>, <strong>bold</strong>, inline <code>code</code>, and
   <a href="#">links</a> inside a paragraph without extra classes.</p>
+  -->
 
   <h2>The Premise</h2>
   <p>For this assignment, this one guy Prokudin-Gorskii took a bunch of photos. 
@@ -45,6 +47,8 @@
   <p>It's pretty messy. The borders are inconsistent, and
     there are a bunch of speckles everywhere. Our job is to line up these 3 images together
     so it looks pretty and all the colors match up!</p>
+
+  <hr>
 
   <h2>The Approach</h2>
 
@@ -62,10 +66,12 @@
   we iterate through all the pixel displacements and we use some sort of metric to see how well they match. The metric I chose was taking the L2 norm of the difference
   between the two images (as suggested from the project page). Basically finding how far the images are from each other! We can iterate through all the displacements, 
   save the displacement with the least distance, then output that. <br><br>
-
+  <!--
   After some deliberation, the algorithm I came up with looks like this:<br><br>
 
   <img src="images/codes.png" style="max-width: 600px; height: auto;"><br><br>
+  -->
+
 
   Alright, let's see how the images look:
   <br><br>
@@ -78,10 +84,15 @@
   Second of all, there's a huge error on line 46. On that line I use temp_matrix to iterate through the x displacements. I initially 
   set temp_matrix to a (has 0 displacement), but my range begins at an x displacement of -15. This means that if the optimal x displacement
   is 0, it will be logged at -15. You can see this happening in the picture, where y is aligned it's just x which has a bad displacement.
+
+  (code will be uploaded on the post after project deadline)
   <br><br>
 
   I eventually fix that error in this algorithm here:<br><br>
+  
+  <!--
   <img src="images/notempmatrix.png" style="max-width: 600px; height: auto;"><br><br>
+  -->
   Although I didn't add cropping yet (oops forgot to document), I iterate over x and y in the same step, resulting in this: <br><br>
 
   <img src="images/cathedralnotasbad.png" style="max-width: 600px; height: auto;"><br><br>
@@ -90,6 +101,7 @@
   I knew the cathedral should be aligned by now using simple metrics. It was here I decided to swtich my comparison. Instead of taking the L2 norm,
   I decided to take the normalized cross correlation, resulting in this algorithm:<br><br>
 
+  <!--
   <pre><code>def align(a, b, xd=15, yd=15, crop_percent=0.10):
   # crop b on all sides
   cropped_b = crop_image(b, crop_percent)
@@ -114,10 +126,10 @@
               best_yd = j
               best_xd = i
 
-  return (best_yd, best_xd)</code></pre><br>
+  return (best_yd, best_xd)</code></pre>
   </p>
 
-  <p>I also implemented some helper functions here:<br><br></p>
+  <p>I also implemented some helper functions here:<br></p>
   <pre><code># helper functions
 def ncc(a, b):
     a_flat = a.flatten()
@@ -143,6 +155,7 @@ def crop_image(a, crop_percent):
 def roll_image(a, xy):
     return np.roll(a, shift=xy, axis=(0, 1))</code></pre>
 
+  -->
   <p>Finally the images are aligned! Check them out! I also corrected the color order when stacking, which I didn't notice since I was too busy aligning.
     <br><br>Calculated alignments are in the footers. (y, x) 
   </p>
@@ -164,13 +177,158 @@ def roll_image(a, xy):
     </figure>
   </div>
 
-  <br><br>
+  <hr>
 
   <h2>Image Pyramids!</h2>
 
-  <p></p>
+  <p>First, let's test our algorithm on one of the bigger images. I chose to do melons.tif, here's what it looks like:
 
-  <!-- ===== SECTION HEADER ===== -->
+  <img src="images/trashmelons.png" style="max-width: 600px; height: auto;"><br><br>
+
+  Yikes! It's way off. The reason for this is that theoretically it should work, but the image is so big trying to align it with a displacement > 15 takes a LONG time to run.
+  Even running this with ±15 took ~40s to run. Which is why we have to use an image pyramid. First, we find the alignment of the downscaled image, iterating through a large pixel
+  displacement. Once we find that, we scale the image back up and use the displacement we found before as a base to search from, we can search through a much smaller pixel
+  to fine tune our search. The resulting algorithm is here:
+
+  <!--
+  <pre><code>def image_pyramid(a, b, depth=4):
+    # base case
+    if depth == 0:
+        return align(a, b)
+
+    # get the displacement on half the image
+    small_xd, small_yd = image_pyramid(sk.transform.rescale(a, 0.5), sk.transform.rescale(b, 0.5), depth - 1)
+
+    # then multiply by 2 since our displacement once we move back to normal resolution will be 2x the one we found at smaller resolution
+    normal_xd = small_xd * 2
+    normal_yd = small_yd * 2
+
+    # now we can shift by that displacement and further refine our search in a smaller window
+    shifted_a = roll_image(a, (normal_xd, normal_yd))
+    refined_xd, refined_yd = align(shifted_a, b, xd=5, yd=5)
+
+    # get the final calculated displacement by adding the two
+    final_xd = refined_xd + normal_xd
+    final_yd = refined_yd + normal_yd
+
+    return (final_xd, final_yd)</code></pre>
+  </p>
+  <p>
+  -->
+  <br><br>
+  Okay, let's see what melons looks like now. <br><br>
+
+  <img src="images/melons.jpg" style="max-width: 600px; height: auto;"><br><br>
+
+  Looks great! Here's a slideshow of all the images! Look through them! Their displacements are in the footers. 
+
+  <div class="carousel">
+    <figure>
+      <img src="images/melons.jpg" alt="Slide 1">
+      <figcaption>melons.jpg | Red: (178, 13), Green: (82, 11)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/religous_painting.jpg" alt="Slide 2">
+      <figcaption>religious_painting.jpg | Red: (68, 7), Green: (28, 3)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/self_portrait.jpg" alt="Slide 3">
+      <figcaption>self_portrait.jpg | Red: (176, 36), Green: (79, 29)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/harvesters.jpg" alt="Slide 3">
+      <figcaption>harvesters.jpg | Red: (124, 14), Green: (60, 17)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/three_generations.jpg" alt="Slide 3">
+      <figcaption>three_generations.jpg | Red: (112, 11), Green: (53, 14)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/ilemselga.jpg" alt="Slide 3">
+      <figcaption>ilemselg.jpg | Red: (130, 11), Green: (40, 7)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/icon.jpg" alt="Slide 3">
+      <figcaption>icon.jpg | Red: (89, 23), Green: (41, 17)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/church.jpg" alt="Slide 3">
+      <figcaption>church.jpg | Red: (58, -4), Green: (25, 4)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/wharf.jpg" alt="Slide 3">
+      <figcaption>wharf.jpg | Red: (83, -16), Green: (15, -7)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/siren.jpg" alt="Slide 3">
+      <figcaption>siren.jpg, my favorite :D | Red: (96, -25), Green: (49, -6)</figcaption>
+    </figure>
+    <figure>
+      <img src="images/emir.jpg" alt="Slide 3">
+      <figcaption>emir.jpg | Red: (104, 56), Green: (49, 24)</figcaption>
+    </figure>
+  </div>
+  </p>
+  <p>
+  The one exception is Emir, who is slightly misaligned: <br><br>
+
+  <img src="images/emirmessedup.png" style="max-width: 500px; height: auto; display: block; margin: 0 auto;"><br>
+
+  That's cause he's super blue. Since he's super blue, in the blue image the whole middle chunk of the image is super bright,
+  but compared to the other red and green image it's super dark. Because of this, it's messing with the scoring causing the images to be misaligned.
+  If Emir was wearing a white shirt or something it'd probably be aligned.
+  </p>
+  <hr>
+
+  <p>
+  Here's some images I chose from the collection to align. 
+
+  <figure>
+    <img src="images/peony.jpg" alt="Slide 1">
+    <figcaption>peony.jpg | Red: (156, 30), Green: (75, 21)</figcaption>
+  </figure>
+  <figure>
+    <img src="images/canal.jpg" alt="Slide 2">
+    <figcaption>canal.jpg | Red: (46, 49), Green: (28, 24)</figcaption>
+  </figure>
+  <figure>
+    <img src="images/field.jpg" alt="Slide 3">
+    <figcaption>field.jpg | Red: (118, 11), Green: (55, 4)</figcaption>
+  </figure>
+  </p>
+  <p>
+  Here's a final table with all the image offsets computed:
+  </p>
+
+  <!-- ===== TABLE ===== -->
+  <table>
+    <thead>
+      <tr><th>Image</th><th>Red offset</th><th>Green offset</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>wharf.tif</td><td>(83, -16)</td><td>(15, -7)</td></tr>
+      <tr><td>emir.tif</td><td>(104, 56)</td><td>(49, 24)</td></tr>
+      <tr><td>monastery.jpg</td><td>(3, 2)</td><td>(-3, 2)</td></tr>
+      <tr><td>religous_painting.tif</td><td>(68, 7)</td><td>(28, 3)</td></tr>
+      <tr><td>church.tif</td><td>(58, -4)</td><td>(25, 4)</td></tr>
+      <tr><td>three_generations.tif</td><td>(112, 11)</td><td>(53, 14)</td></tr>
+      <tr><td>melons.tif</td><td>(178, 13)</td><td>(82, 11)</td></tr>
+      <tr><td>tobolsk.jpg</td><td>(6, 3)</td><td>(3, 3)</td></tr>
+      <tr><td>icon.tif</td><td>(89, 23)</td><td>(41, 17)</td></tr>
+      <tr><td>cathedral.jpg</td><td>(12, 3)</td><td>(5, 2)</td></tr>
+      <tr><td>siren.tif</td><td>(96, -25)</td><td>(49, -6)</td></tr>
+      <tr><td>self_portrait.tif</td><td>(176, 36)</td><td>(79, 29)</td></tr>
+      <tr><td>harvesters.tif</td><td>(124, 14)</td><td>(60, 17)</td></tr>
+      <tr><td>ilemselga.tif</td><td>(130, 11)</td><td>(40, 7)</td></tr>
+      <tr><td>field.tif</td><td>(118, 11)</td><td>(55, 4)</td></tr>
+      <tr><td>peony.tif</td><td>(156, 30)</td><td>(75, 21)</td></tr>
+      <tr><td>canal.tif</td><td>(46, 49)</td><td>(28, 24)</td></tr>
+
+    </tbody>
+  </table>
+
+  <!--
+  ===== SECTION HEADER ===== 
   <h2>Part 1: Section header</h2>
 
   <p>Every <code>&lt;p&gt;</code>, <code>&lt;h2&gt;</code>, and
@@ -181,7 +339,7 @@ def roll_image(a, xy):
 
   <p>Use <code>&lt;h3&gt;</code> for smaller steps inside a part.</p>
 
-  <!-- ===== IMAGE WITH FOOTNOTE ===== -->
+  ===== IMAGE WITH FOOTNOTE ===== 
   <figure>
     <img src="./images/example.jpg" alt="Describe the image here">
     <figcaption>A short footnote under the image, left-aligned and gray.</figcaption>
@@ -190,7 +348,7 @@ def roll_image(a, xy):
   <p>Drop image files into <code>Project_1/images/</code> and point
   <code>src</code> at them.</p>
 
-  <!-- ===== TWO IMAGES SIDE BY SIDE ===== -->
+   ===== TWO IMAGES SIDE BY SIDE ===== 
   <div class="figure-row">
     <figure>
       <img src="./images/example.jpg" alt="Left image">
@@ -202,7 +360,7 @@ def roll_image(a, xy):
     </figure>
   </div>
 
-  <!-- ===== IMAGE CAROUSEL (each figure = one slide with its own footnote) ===== -->
+  ===== IMAGE CAROUSEL (each figure = one slide with its own footnote) ===== 
   <div class="carousel">
     <figure>
       <img src="./images/example.jpg" alt="Slide 1">
@@ -218,16 +376,17 @@ def roll_image(a, xy):
     </figure>
   </div>
 
-  <!-- ===== CODE BLOCK ===== -->
+   ===== CODE BLOCK ===== 
   <pre><code>def align(a, b):
     return np.roll(a, best_shift(a, b), axis=(0, 1))</code></pre>
 
-  <!-- ===== SECTION DIVIDER ===== -->
+   ===== SECTION DIVIDER ===== 
   <hr>
 
   <h2>Part 2: Another section</h2>
 
   <p>Copy any block above and edit the text. That is the whole system.</p>
+  -->
 
 </main>
 

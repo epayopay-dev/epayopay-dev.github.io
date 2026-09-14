@@ -224,6 +224,30 @@ figcaption {
 
 .carousel-counter { min-width: 40px; text-align: center; }
 
+/* ---------- Tables ---------- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 32px 0 0;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+th {
+  font-weight: 600;
+  border-bottom: 2px solid var(--text);
+}
+
+td { font-variant-numeric: tabular-nums; }
+
 /* ---------- Misc ---------- */
 
 hr {
