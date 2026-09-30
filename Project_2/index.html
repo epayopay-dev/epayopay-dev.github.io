@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project 2 &middot; CS 180 Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<!-- ===== NAV (same on every page; change the href depth per folder) ===== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-title" href="../index.html">CS 180 Portfolio</a>
+    <a class="nav-link" href="../Project_1/index.html">Project 1</a>
+    <a class="nav-link active" href="./index.html">Project 2</a>
+  </div>
+</nav>
+
+<main class="post">
+
+  <!-- ===== TITLE BLOCK ===== -->
+  <h1 class="post-title">Project 2: Fun with Filters and Frequencies</h1>
+  <div class="byline">
+    <p class="post-meta">Erson Payopay</p>
+    <img class="avatar" src="../images/me.jpg" alt="Erson Payopay">
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>Part 1: Fun with Filters</h2>
+
+  <h3>1.1 Convolutions from Scratch</h3>
+  <p>
+    So I only made the two loop version cause I didn't know it was a requirement to make the four loop and compare the times
+    (read the deliverables before working on the project!) So I only have my two loop version. But it basically loops through every pixel in the image,
+    and centered around that pixel cuts a portion of the image out. Once I have that portion I flatten both that and the kernel, and then set that pixel's
+    value to the dot product between the two. This basically takes the dot product between the two matrices. Of course, I take the image portion relative to the kernel size.<br><br>
+
+    Regarding borders, for the 'full' setting I add zeros on the image I'm convoluting with relative to the kernel. So if my kernel is 3x3, I add both 3 pixels on the top and Bottom
+    and 3 pixels on the sides of the image. For the 'same' setting I just add half of that on all edges. I flip the filter because otherwise it would just be a cross correlation
+    and not actually a convolution, and I do so using <code>np.flip()</code><br><br>
+    
+    Comparing times on the picture of me, my convolution algorithm averages around 1.75s across a 9x9 box filter, the Dx filter, and a 5x5 gaussian filter. This pales in comparison
+    to scipy's convolve which does the same thing in milliseconds. 
+  </p>
+
+  <p>Here's a code snippet</p>
+
+  <figure>
+    <img src="images/1.1/convolutioncodesnippet.png" alt="Convolution code">
+    <figcaption>my convolution implementation</figcaption>
+  </figure>
+
+  <div class="figure-row">
+    <figure>
+      <img src="images/1.1/ogimage.png" alt="Original image">
+      <figcaption>Original image.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/1.1/oggrayscale.png" alt="Grayscale image">
+      <figcaption>Grayscale.</figcaption>
+    </figure>
+  </div>
+
+  <div class="carousel">
+    <figure>
+      <img src="images/1.1/9by9filter.png" alt="9x9 box filter result">
+      <figcaption>9&times;9 box filter.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/1.1/comparison.png" alt="Comparison">
+      <figcaption>9x9 box filter comparison vs original grayscale</figcaption>
+    </figure>
+    <figure>
+      <img src="images/1.1/dx.png" alt="Convolved with Dx">
+      <figcaption>Convolved with D<sub>x</sub>.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/1.1/dy.png" alt="Convolved with Dy">
+      <figcaption>Convolved with D<sub>y</sub>.</figcaption>
+    </figure>
+  </div>
+
+  <h3>1.2 Finite Difference Operator</h3>
+  <p>
+    The Dx filter highlights the vertical edges while the Dy filter highlights the horizontal ones. 
+
+    The gradient magnitude squares and adds the values at each pixel together, like taking the hypotenuse of the two. It shows the overall
+    edges of the image.</p>
+
+
+  <p>
+    The threshold I decided on was 0.25, since adding more it started to look like I was removing edges. But reducing the threshold
+    made the grass show up a lot more. I tuned this just by eye.
+  </p>
+
+  <figure>
+    <img src="images/1.2/codesnippet.png" alt="Finite difference code">
+    <figcaption>gradient magnitude code</figcaption>
+  </figure>
+
+  <div class="carousel">
+    <figure>
+      <img src="images/1.2/dxanddy.png" alt="Partial derivatives in x and y">
+      <figcaption>&part;I/&part;x and &part;I/&part;y.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/1.2/gradientmagnitude.png" alt="Gradient magnitude">
+      <figcaption>Gradient magnitude.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/1.2/binarizedimage.png" alt="Binarized edges">
+      <figcaption>binarized image</figcaption>
+    </figure>
+  </div>
+
+  <h3>1.3 Derivative of Gaussian (DoG) Filter</h3>
+  <p>
+    I built the gaussian by first making a 1d gaussian, then taking the outer product with itself. 
+    This made the 2d gaussian kernel! With that, I can smooth out the gradient magnitude and then binarize it for a
+    cleaner result. 
+  </p>
+
+  <p>
+    Compared to the previous result, this result below is much better. Barely any grass / trash is picked up at all, and just the lines overall
+    look a lot better. I changed the threshold to match that since the gaussian reduced the brightness of the gradient magnitude,
+    lowering it to 0.15 instead of 0.25. 
+  </p>
+
+  <figure>
+    <img src="images/1.3/codesnippet1.3.png" alt="DoG code">
+    <figcaption>DoG code</figcaption>
+  </figure>
+
+  <figure>
+    <img src="images/1.3/gaussiangradientmagnitude.png" alt="Gradient magnitude after Gaussian blur">
+    <figcaption>Gradient magnitude after Gaussian blur.</figcaption>
+  </figure>
+
+  <div class="figure-row">
+    <figure>
+      <img src="images/1.3/dxgaussiankernel.png" alt="DoG filter in x">
+      <figcaption>DoG<sub>x</sub> filter.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/1.3/dygaussiankernel.png" alt="DoG filter in y">
+      <figcaption>DoG<sub>y</sub> filter.</figcaption>
+    </figure>
+  </div>
+
+  <p>
+    The DoG filters are made by convoluting the derivative filters with the gaussian. Convoluting the original image twice with the derivative then the gaussian,
+    and convoluting the filters together and then convoluting the original image ends up with the same thing. This is because convolution is commutative, so I 
+    can just convolute all the filters together and then incorporate the main image. Here's a comparison of the two methods. 
+    
+    There's actually a slight difference between the two in the comparison, but they overall look the same. I can attribute that to how my convolution
+    algorithm works, I don't think I normalize the pixel values so I also had to change the threshold. Having to change the threshold is probably a part of that. 
+  </p>
+
+  <div class="figure-row">
+    <figure>
+      <img src="images/1.3/binarizedgaussian.png" alt="Blur then derivative, binarized">
+      <figcaption>Blur, then D<sub>x</sub>/D<sub>y</sub>.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/1.3/binarizedgaussian2.png" alt="Single DoG convolution, binarized">
+      <figcaption>Single DoG convolution.</figcaption>
+    </figure>
+  </div>
+
+  <hr>
+
+  <!-- ================================================================ -->
+  <h2>Part 2: Fun with Frequencies</h2>
+
+  <h3>2.1 Image "Sharpening"</h3>
+  <p>The unsharp mask works by basically subtracting low frequencies from the image to get a sharper high frequency image. In more depth,
+    we take the original image, add the image * a sharpening factor, and subtract a blurred image * that same sharpening factor</p>
+
+  <p>As alpha increases the image starts to look a lot sharper, the colors as well start to look a little brighter around edges, and overall it looks
+    more intense. I ended up deciding that alpha = 2.0 is the best because that's the point at which my friends a couple meters away
+    could tell the difference. 
+  </p>
+
+  <figure>
+    <img src="images/2.1/codesnippet.png" alt="Sharpening code">
+    <figcaption>unsharp mask code</figcaption>
+  </figure>
+
+  <div class="carousel">
+    <figure>
+      <img src="images/2.1/tajmahalcomparison.png" alt="Taj Mahal sharpening">
+      <figcaption>before / after, &alpha; = 2.0</figcaption>
+    </figure>
+    <figure>
+      <img src="images/2.1/kittycomparison.png" alt="Kitty sharpening">
+      <figcaption>normal vs sharpened kitty</figcaption>
+    </figure>
+    <figure>
+      <img src="images/2.1/mecomparison.png" alt="Sharpening a photo of me">
+      <figcaption>normal vs sharpened me</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <img src="images/2.1/tajmahal_sharpening_factors.png" alt="Taj Mahal at several sharpening amounts">
+    <figcaption>taj mahal at different sharpening amounts (&alpha;).</figcaption>
+  </figure>
+
+  <h3>2.2 Hybrid Images</h3>
+  <p>A hybrid image works by applying a low pass filter and a high pass filter on two images and stacking them on top of one another. From far away, the low frequencies will stand
+    out more because high frequencies are less discernable the further you are. However, when you get closer the high pass frequencies start appearing and start to
+    dominate the image. This creates a hybrid image that appears as two.
+  </p>
+
+  <h4>Derek + his kitty (full process)</h4>
+  <p>In this sequence, I made Derek low pass while his cat is high pass. </p>
+
+  <div class="figure-row">
+    <figure>
+      <img src="images/2.2/derekpicture.jpg" alt="Derek">
+      <figcaption>Derek (original).</figcaption>
+    </figure>
+    <figure>
+      <img src="images/2.2/nutmeg.jpg" alt="Nutmeg">
+      <figcaption>Nutmeg (original).</figcaption>
+    </figure>
+  </div>
+
+  <p>
+    Taking the log mag FFTs of the image, we can see that the low pass keeps a lot of the brightness towards the center, while the high frequencies
+    have them all towards the edge and takes away from the center. Combining those representations together, we get a combination of the two. 
+  </p>
+
+  <figure>
+    <img src="images/2.2/frequencyanalysis.png" alt="Low-pass, high-pass, hybrid, and their FFTs">
+    <figcaption>Top: low-passed Derek, high-passed Nutmeg, hybrid. Bottom: their FFTs.</figcaption>
+  </figure>
+
+  <p>I chose sigma1 = 8 for low pass and sigma2 = 6 for high pass because it was on these settings at which the cat
+    was easily distinguishable from close up. But when I took a couple steps back, Derek started to show up more. 
+  </p>
+
+  <figure>
+    <img src="images/2.2/sigmasweep.png" alt="Hybrid results across sigma values">
+    <figcaption>Sweep over &sigma;<sub>1</sub> and &sigma;<sub>2</sub>; &sigma;<sub>1</sub> = 8, &sigma;<sub>2</sub> = 6 chosen.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="images/2.2/guywithcat.png" alt="Hybrid: Derek and Nutmeg">
+    <figcaption>Final hybrid: Derek + Nutmeg.</figcaption>
+  </figure>
+
+  <h4>Walter &times; Bingus</h4>
+  <p>Walter high, bingus low</p>
+
+  <div class="figure-row">
+    <figure>
+      <img src="images/2.2/walter.jpg" alt="Walter">
+      <figcaption>Walter (original).</figcaption>
+    </figure>
+    <figure>
+      <img src="images/2.2/bingus.jpg" alt="Bingus">
+      <figcaption>Bingus (original).</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <img src="images/2.2/walterxbingus.png" alt="Hybrid: Walter and Bingus">
+    <figcaption>Final hybrid: Walter &times; Bingus.</figcaption>
+  </figure>
+
+  <h4>Brian + Aldrich</h4>
+  <p>My friends Brian and Aldrich. Aldrich high, Brian low.</p>
+
+  <div class="figure-row">
+    <figure>
+      <img src="images/2.2/brian.jpg" alt="Brian">
+      <figcaption>Brian (original).</figcaption>
+    </figure>
+    <figure>
+      <img src="images/2.2/aldrich.jpg" alt="Aldrich">
+      <figcaption>Aldrich (original).</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <img src="images/2.2/brialdrich.png" alt="Hybrid: Brian and Aldrich">
+    <figcaption>Final hybrid: Brian + Aldrich.</figcaption>
+  </figure>
+
+  <h3>2.3 Gaussian and Laplacian Stacks</h3>
+  <p>
+    A gaussian stack is the original image repeatedly blurred. The laplacian stack is made by blurring the current level and subtracting the next blurred level. This creates a 
+    frequency band. You can get back the original image by adding the laplacian stack together + the final gaussian layer. I decided on 5 layers for my implementation.
+  </p>
+
+  <figure>
+    <img src="images/2.3/oraple_grid.png" alt="Laplacian stack levels for the oraple">
+    <figcaption>the laplacian oraple grid</figcaption>
+  </figure>
+
+  <h3>2.4 Multiresolution Blending</h3>
+  <p>
+  Multiresolution blending works by building a Laplacian stack of both images. You can do this by applying the gaussian and then subtracting the next level gaussian (blurred again)
+  to sort of create a frequency band. We can implement a mask over each frequency band in this way: mask * laplacian_a and inverted mask * laplacian_b. Once we have our masked
+  images at each level, we can add them all together to get a blended image. By applying the mask at each step, we're applying a mask at each frequency level making the transition smooth for the whole image
+  compared to a simple clean cut across. Also for the mask, make sure to have a associated gaussian stack since we want the frequencies to match.
+  </p>
+
+  <p>
+    I made two custom blends. One is of me and my favorite streamer Thebausffs. I just used the same mask
+    as the oraple which is just half zeros and half 1's. 
+
+    The other blend I made is supposed to be like the teletubby sun. It uses a circular mask instead of
+    the oraple one. 
+
+
+  </p>
+
+  <div class="carousel">
+    <figure>
+      <img src="images/2.3/oraple.png" alt="Oraple">
+      <figcaption>The oraple.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/2.3/faceblend.png" alt="Two faces blended down the middle">
+      <figcaption>ME AND THE GOAT BAUS</figcaption>
+    </figure>
+    <figure>
+      <img src="images/2.3/sunblend.png" alt="Baby face blended into the sun">
+      <figcaption>teletubby sun</figcaption>
+    </figure>
+  </div>
+
+  <hr>
+
+  <h2>Takeaways</h2>
+  <p>I think the most important thing I learned doing this project was about how different frequencies contribute to an image.
+    The low frequencies capture a lot of general things about an image like color or overall shape, they help a lot with identification. On the other hand,
+    high frequencies capture the fine details of an image, the lines and edges. I also thought the sharpening process was pretty cool, and a lot
+    of image processing is actually quite intuitive / easy to grasp. I used to use photoshop a lot, so it's actually really cool to see how 
+    the backend of the tools I use actually works. 
+  </p>
+
+  <!--
+  ===== COMPONENT REFERENCE (copy any block) =====
+
+  IMAGE WITH FOOTNOTE
+  <figure>
+    <img src="images/example.jpg" alt="Describe the image here">
+    <figcaption>A short footnote under the image.</figcaption>
+  </figure>
+
+  TWO IMAGES SIDE BY SIDE
+  <div class="figure-row">
+    <figure><img src="images/a.jpg" alt=""><figcaption>Left</figcaption></figure>
+    <figure><img src="images/b.jpg" alt=""><figcaption>Right</figcaption></figure>
+  </div>
+
+  CAROUSEL (each figure = one slide)
+  <div class="carousel">
+    <figure><img src="images/a.jpg" alt=""><figcaption>Slide 1</figcaption></figure>
+    <figure><img src="images/b.jpg" alt=""><figcaption>Slide 2</figcaption></figure>
+  </div>
+
+  SMALL CENTERED IMAGE
+  <img src="images/a.png" style="max-width: 300px; height: auto; display: block; margin: 0 auto;">
+
+  TABLE
+  <table>
+    <thead><tr><th>Col 1</th><th>Col 2</th></tr></thead>
+    <tbody><tr><td>a</td><td>b</td></tr></tbody>
+  </table>
+  -->
+
+</main>
+
+<script src="../script.js"></script>
+</body>
+</html>
