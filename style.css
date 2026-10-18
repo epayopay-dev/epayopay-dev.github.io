@@ -224,6 +224,56 @@ figcaption {
 
 .carousel-counter { min-width: 40px; text-align: center; }
 
+/* ---------- Image grid: <div class="image-grid cols-N"> holding several figures ----------
+   Shows every image at once instead of one slide at a time. The grid is wider than
+   the text column so small panels stay readable. Click an image to open it full size. */
+
+.image-grid {
+  --cols: 2;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: 24px 16px;
+  align-items: start;
+  width: min(1040px, calc(100vw - 48px));
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 44px 0 0;
+}
+
+.image-grid.cols-1 { --cols: 1; }
+.image-grid.cols-3 { --cols: 3; }
+.image-grid.cols-4 { --cols: 4; }
+
+.image-grid figure { margin: 0; }
+
+.image-grid a { display: block; }
+
+/* A low-resolution image shown small, e.g. the "distant" view of a hybrid */
+figure.small img {
+  width: 96px;
+  image-rendering: auto;
+}
+
+/* ---------- Write-up placeholder: replace with your own <p> ---------- */
+
+.todo {
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--muted);
+  border: 1px dashed rgba(180, 180, 180, 1);
+  border-radius: 6px;
+  padding: 16px 18px;
+  min-height: 96px;
+  margin: 28px 0 0;
+}
+
+.todo.missing {
+  border-color: rgba(214, 120, 90, 1);
+  color: rgba(170, 80, 50, 1);
+}
+
 /* ---------- Tables ---------- */
 
 table {
@@ -285,4 +335,5 @@ pre code { background: none; padding: 0; }
   h3 { font-size: 20px; }
   p { font-size: 18px; }
   .figure-row { flex-direction: column; }
+  .image-grid[class] { --cols: 1; width: 100%; left: 0; transform: none; }
 }

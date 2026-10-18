@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project 3 &middot; CS 180 Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<!-- ===== NAV (same on every page; change the href depth per folder) ===== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-title" href="../index.html">CS 180 Portfolio</a>
+    <a class="nav-link" href="../Project_1/index.html">Project 1</a>
+    <a class="nav-link" href="../Project_2/index.html">Project 2</a>
+    <a class="nav-link active" href="./index.html">Project 3</a>
+  </div>
+</nav>
+
+<main class="post">
+
+  <!-- ===== TITLE BLOCK ===== -->
+  <h1 class="post-title">Project 3: Flow Matching</h1>
+  <div class="byline">
+    <p class="post-meta">Erson Payopay</p>
+    <img class="avatar" src="../images/me.jpg" alt="Erson Payopay">
+  </div>
+
+  <!--
+    HOW TO FILL THIS IN
+    - Each <div class="todo"> is a blank write-up box for a deliverable that asks you to
+      explain or compare something. Replace the whole <div class="todo">...</div> with your own <p>...</p>.
+    - Each <div class="todo missing"> marks an image the project asks for that wasn't in your notebook.
+      Replace it with a <figure> (or add a figure to the nearby image grid) once you have the image.
+    - Click any image on the page to open it full size.
+  -->
+
+  <!-- ================================================================ -->
+  <!-- ========================== PART A ============================== -->
+  <!-- ================================================================ -->
+  <h2>Part A: Exploring the Power of Flow Models</h2>
+
+  <p>
+    The goal of part A is to generate images! We look at different denoising techniques,
+    and use those to generate images. We can go from images to images, guide image creation with
+    prompts, and finally make some cool effects such as visual anagrams!
+  </p>
+
+  <!-- ================================================================ -->
+  <h2>1. Visualizing Training and Sampling</h2>
+
+  <h3>1.1 Constructing Noisy Training Inputs</h3>
+
+  <figure>
+    <a href="images/partA/1.1/noisy_inputs.jpg" target="_blank"><img src="images/partA/1.1/noisy_inputs.jpg" alt="Wombat image and its noisy versions at t = 0.25, 0.50, 0.75"></a>
+    <figcaption>My image and the noisy training inputs at t = 0.25, 0.50, 0.75, all built from the same noise sample.</figcaption>
+  </figure>
+
+  <h3>1.2 Classical Denoising</h3>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="images/partA/1.2/blur_t025.jpg" target="_blank"><img src="images/partA/1.2/blur_t025.jpg" alt="Noisy input and Gaussian blur at t = 0.25"></a>
+      <figcaption>t = 0.25: noisy input vs. best Gaussian blur.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/1.2/blur_t050.jpg" target="_blank"><img src="images/partA/1.2/blur_t050.jpg" alt="Noisy input and Gaussian blur at t = 0.50"></a>
+      <figcaption>t = 0.50: noisy input vs. best Gaussian blur.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/1.2/blur_t075.jpg" target="_blank"><img src="images/partA/1.2/blur_t075.jpg" alt="Noisy input and Gaussian blur at t = 0.75"></a>
+      <figcaption>t = 0.75: noisy input vs. best Gaussian blur.</figcaption>
+    </figure>
+  </div>
+
+  <h3>1.3 One-Step Denoising</h3>
+
+  <div class="image-grid cols-1">
+    <figure>
+      <a href="images/partA/1.3/one_step_t025.jpg" target="_blank"><img src="images/partA/1.3/one_step_t025.jpg" alt="Original, noisy, and one-step estimate at t = 0.25"></a>
+      <figcaption>t = 0.25: original, noisy input, one-step estimate.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/1.3/one_step_t050.jpg" target="_blank"><img src="images/partA/1.3/one_step_t050.jpg" alt="Original, noisy, and one-step estimate at t = 0.50"></a>
+      <figcaption>t = 0.50: original, noisy input, one-step estimate.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/1.3/one_step_t075.jpg" target="_blank"><img src="images/partA/1.3/one_step_t075.jpg" alt="Original, noisy, and one-step estimate at t = 0.75"></a>
+      <figcaption>t = 0.75: original, noisy input, one-step estimate.</figcaption>
+    </figure>
+  </div>
+
+  <h3>1.4 Visualizing Velocity</h3>
+
+  <figure>
+    <a href="images/partA/1.4/original.jpg" target="_blank"><img src="images/partA/1.4/original.jpg" alt="Original image" style="max-width: 300px;"></a>
+    <figcaption>Original image.</figcaption>
+  </figure>
+
+  <div class="image-grid cols-1">
+    <figure>
+      <a href="images/partA/1.4/velocity_t025.jpg" target="_blank"><img src="images/partA/1.4/velocity_t025.jpg" alt="Noisy image, predicted update, ground-truth update, and error at t = 0.25"></a>
+      <figcaption>t = 0.25: noisy image, predicted update, ground-truth update, RGB RMS error.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/1.4/velocity_t050.jpg" target="_blank"><img src="images/partA/1.4/velocity_t050.jpg" alt="Noisy image, predicted update, ground-truth update, and error at t = 0.50"></a>
+      <figcaption>t = 0.50: noisy image, predicted update, ground-truth update, RGB RMS error.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/1.4/velocity_t075.jpg" target="_blank"><img src="images/partA/1.4/velocity_t075.jpg" alt="Noisy image, predicted update, ground-truth update, and error at t = 0.75"></a>
+      <figcaption>t = 0.75: noisy image, predicted update, ground-truth update, RGB RMS error.</figcaption>
+    </figure>
+  </div>
+
+  <p>
+
+    In this section, we want to see how our model denoises. Instead of just
+    using denoising techniques, we want to see what our what our model got right
+    and wrong when denoising and that's what this section shows. We're basically trying
+    to predict the direction each pixel should go to denoise, and discrepencies between
+    predicted and actual show up on the right side. 
+    <br><br>
+    Naturally, the image with the most noise had the most errors
+    and the image with the least noise had the least. 
+  </p>
+
+  <h3>1.5 Iterative Denoising with Euler Sampling</h3>
+
+  <div class="image-grid cols-1">
+    <figure>
+      <a href="images/partA/1.5/euler_trajectory.jpg" target="_blank"><img src="images/partA/1.5/euler_trajectory.jpg" alt="Euler denoising trajectory from t = 0.50 to t = 1.00"></a>
+      <figcaption>Euler trajectory starting from the t = 0.50 noisy input (25 updates): initial state, every fifth update, and final image.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/1.5/method_comparison.jpg" target="_blank"><img src="images/partA/1.5/method_comparison.jpg" alt="Original, Gaussian blur, one-step, and Euler results"></a>
+      <figcaption>Original vs. Gaussian blur vs. one-step estimate vs. Euler denoising, all from the same t = 0.50 input.</figcaption>
+    </figure>
+  </div>
+
+  <p>
+
+    Looking at the three denoising techniques, we can see Euler integration is the best. The Gaussian blur denoising
+    works pretty badly overall, and that makes sense since there's too much noise. When it 
+    blurs there's still going to be some of that noisy input accounted for in the blur.
+    <br><br>
+    Looking at the one-step denoiser, it works pretty well but you lose a lot of 
+    image detail, and it looks very wonky when starting from a very noisy input. This is because
+    the one-step denoiser travels towards the average of the 'correct image' manifold. 
+    When there's a lot of noise, this manifold is very large since there's a lot
+    that can be interpreted with more noise, so the average is a lot bigger
+    and you're capturing incorrect images in your average.
+    <br><br>
+    The Euler denoising works the best because you're basically taking small steps
+    towards the correct image, and the longer you have it run for the closer you get to your
+    actual image. 
+
+  </p>
+
+  <h3>1.6 Generating Images from Noise</h3>
+
+  <figure>
+    <a href="images/partA/1.6/samples.jpg" target="_blank"><img src="images/partA/1.6/samples.jpg" alt="Five samples generated from pure noise"></a>
+    <figcaption>5 samples from pure noise (t_start = 0), prompt "a high quality photo", seeds 180&ndash;184.</figcaption>
+  </figure>
+
+  <p>
+
+    We can see all the images generated some sort of person (or at least tried to), even though 
+    all the seeds were different. This is probably because the prompt 'a high quality photo' 
+    is seen a lot with photos of people in the model we're using. So it automatically
+    assumes that phrase is associated with people. 
+
+  </p>
+
+  <hr>
+
+  <!-- ================================================================ -->
+  <h2>2. Conditional Generation and Guidance</h2>
+
+  <h3>2.1 Classifier-Free Guidance (CFG)</h3>
+
+  <figure>
+    <a href="images/partA/2.1/cfg_samples.jpg" target="_blank"><img src="images/partA/2.1/cfg_samples.jpg" alt="Five CFG samples with w = 7"></a>
+    <figcaption>5 CFG samples, w = 7, same initial noises as 1.6 (seeds 180&ndash;184).</figcaption>
+  </figure>
+
+  <p>
+
+    Without guidance, the model is sort of doing the same thing as seen in the one-step denoiser
+    where it's landing at the average of all possible correct images, giving us an ugly 
+    and muddled one. 
+    <br><br>
+    CFG sort of makes the model commit to one image by multiplying
+    the direction I'm heading towards by w (7) and travelling towards that. It also steers
+    me closer to an actual image and not an average image (not averaged image but image in the middle of 
+    all plausible image) through subtracting by the unconditioned velocty. 
+    <br><br>
+    This results in a much cleaner image but it costs us in diversity. All the images are nice,
+    but they look the same and have the same structure. In 1.6 with the naive stepping,
+    we got images where the people were put in different poses and different angles. 
+
+  </p>
+
+  <hr>
+
+  <!-- ================================================================ -->
+  <h2>3. Creative Applications</h2>
+
+  <h3>3.1 Image-to-Image Editing</h3>
+  <p>
+    Starting times used throughout 3.1 and 3.2: 0.02, 0.04, 0.06, 0.10, 0.14, 0.25, 0.50
+    (smaller starting time = more noise = bigger edit). Prompt: "a high quality photo".
+  </p>
+
+  <div class="image-grid cols-1">
+    <figure>
+      <a href="images/partA/3.1/edit_campanile.jpg" target="_blank"><img src="images/partA/3.1/edit_campanile.jpg" alt="Campanile edits at each starting time"></a>
+      <figcaption>Campanile.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/3.1/edit_aldrich.jpg" target="_blank"><img src="images/partA/3.1/edit_aldrich.jpg" alt="Edits of my first test image at each starting time"></a>
+      <figcaption>My test image 1 (Aldrich).</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/3.1/edit_matthew.jpg" target="_blank"><img src="images/partA/3.1/edit_matthew.jpg" alt="Edits of my second test image at each starting time"></a>
+      <figcaption>My test image 2 (Matthew).</figcaption>
+    </figure>
+  </div>
+
+  <h4>Editing Hand-Drawn and Web Images</h4>
+
+  <div class="image-grid cols-1">
+    <figure>
+      <a href="images/partA/3.1/edit_web_image.jpg" target="_blank"><img src="images/partA/3.1/edit_web_image.jpg" alt="Edits of a web image at each starting time"></a>
+      <figcaption>Web image.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/3.1/edit_drawing_cheese.jpg" target="_blank"><img src="images/partA/3.1/edit_drawing_cheese.jpg" alt="Edits of a cheese drawing at each starting time"></a>
+      <figcaption>Hand drawing 1 (cheese).</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/3.1/edit_drawing_pumpkin.jpg" target="_blank"><img src="images/partA/3.1/edit_drawing_pumpkin.jpg" alt="Edits of a pumpkin drawing at each starting time"></a>
+      <figcaption>Hand drawing 2 (pumpkin).</figcaption>
+    </figure>
+  </div>
+
+  <p>
+
+    Going from image-to-image using a base image at different noise levels. Look 
+    at the results! It's interesting to see the details captured at the highest
+    noise levels. For example, at the highest noise level for Aldrich,
+    it still captures that he's wearing a black jacket. It's also funny
+    just to see how the images sort of morph back to the original.    
+
+  </p>
+
+  <h3>3.2 Text-Guided Image Editing</h3>
+
+  <div class="image-grid cols-1">
+    <figure>
+      <a href="images/partA/3.2/text_edit_campanile.jpg" target="_blank"><img src="images/partA/3.2/text_edit_campanile.jpg" alt="Campanile edited toward a banana"></a>
+      <figcaption>Campanile, prompt: "picture of a banana".</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/3.2/text_edit_aldrich.jpg" target="_blank"><img src="images/partA/3.2/text_edit_aldrich.jpg" alt="Test image 1 edited with a text prompt"></a>
+      <figcaption>Test image 1, prompt: "remove his mustache".</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/3.2/text_edit_matthew.jpg" target="_blank"><img src="images/partA/3.2/text_edit_matthew.jpg" alt="Test image 2 edited with a text prompt"></a>
+      <figcaption>Test image 2, prompt: "give him a buzz cut".</figcaption>
+    </figure>
+  </div>
+
+  <p>
+
+    We changed our prompt! Unfortunately, it didn't really do what I hoped it would.
+    It probably would've worked better if I blurred only the parts that I wanted to edit
+    for Aldrich and Matthew. The banana Campanile went well though. 
+
+  </p>
+
+  <h3>3.3 Visual Anagrams</h3>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="images/partA/3.3/anagram_kitty_doggy.jpg" target="_blank"><img src="images/partA/3.3/anagram_kitty_doggy.jpg" alt="Visual anagram: kitty upright, doggy when rotated"></a>
+      <figcaption>Upright: "a cute kitty". Rotated 180&deg;: "a cute doggy".</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/3.3/anagram_oldman_cliffside.jpg" target="_blank"><img src="images/partA/3.3/anagram_oldman_cliffside.jpg" alt="Visual anagram: old man upright, cliffside when rotated"></a>
+      <figcaption>Upright: "a lithograph of a grumpy old man". Rotated 180&deg;: "a lithograph of a cliffside".</figcaption>
+    </figure>
+  </div>
+
+  <p>
+    
+    The visual anagrams! I'm actually super happy with how they turned out, especially
+    the dog and cat one. The way these are down is pretty simple. We calculate two CFG velocities,
+    the first one we use the image upright and a prompt. Then we flip the image upside down and calcualte the CFG velocity
+    with a second prompt. Once we get those two, we simply take the average and head towards
+    that velocity. 
+
+  </p>
+
+  <h3>3.4 Hybrid Images</h3>
+  <p>Low-pass filter: Gaussian blur with kernel size 265 and &sigma; = 16.</p>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="images/partA/3.4/hybrid_duck_goat_close.jpg" target="_blank"><img src="images/partA/3.4/hybrid_duck_goat_close.jpg" alt="Hybrid image at full size: duck"></a>
+      <figcaption>Close (full size): "a lithograph of a duck".</figcaption>
+    </figure>
+    <figure class="small">
+      <a href="images/partA/3.4/hybrid_duck_goat_distant.png" target="_blank"><img src="images/partA/3.4/hybrid_duck_goat_distant.png" alt="Same hybrid image downsampled: goat"></a>
+      <figcaption>Distant (downsampled to 64&times;64): "a lithograph of a goat".</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partA/3.4/hybrid_mouse_horse_close.jpg" target="_blank"><img src="images/partA/3.4/hybrid_mouse_horse_close.jpg" alt="Hybrid image at full size: mouse"></a>
+      <figcaption>Close (full size): "a lithograph of a mouse".</figcaption>
+    </figure>
+    <figure class="small">
+      <a href="images/partA/3.4/hybrid_mouse_horse_distant.png" target="_blank"><img src="images/partA/3.4/hybrid_mouse_horse_distant.png" alt="Same hybrid image downsampled: horse"></a>
+      <figcaption>Distant (downsampled to 64&times;64): "a lithograph of a horse".</figcaption>
+    </figure>
+  </div>
+
+  <p>
+
+    Hybrid images! These use sort of the same trick as the visual anagrams, 
+    but instead of flipping one image and averaging the two CFG velocities we do something
+    else. We calculate two CFG velocities using two different prompts, then for our final velocity
+    we just pass one through a low pass filter and one through a high pass filter, add them together
+    and travel using that. Check the images out! Squint your eyes and see if you can see what the low
+    pass image is supposed to be. 
+
+  </p>
+
+  <hr>
+
+  <!-- ================================================================ -->
+  <!-- ========================== PART B ============================== -->
+  <!-- ================================================================ -->
+  <h2>Part B: Flow Matching from Scratch!</h2>
+
+  <!-- ================================================================ -->
+  <h2>Part 1: Training a Single-Step Denoising UNet</h2>
+
+  <h3>1.2 Using the UNet to Train a Denoiser</h3>
+
+  <figure>
+    <a href="images/partB/1.2/noising_process.png" target="_blank"><img src="images/partB/1.2/noising_process.png" alt="MNIST digits noised at increasing sigma"></a>
+    <figcaption>Noising process z = x + &sigma;&epsilon; for &sigma; = 0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0 (left to right).</figcaption>
+  </figure>
+
+  <h3>1.2.1 Training</h3>
+  <p>D = 128, batch size 256, Adam with learning rate 1e-4, &sigma; = 0.5, 5 epochs.</p>
+
+  <figure>
+    <a href="images/partB/1.2.1/denoiser_loss.png" target="_blank"><img src="images/partB/1.2.1/denoiser_loss.png" alt="Training loss for the sigma = 0.5 denoiser"></a>
+    <figcaption>Training loss for the &sigma; = 0.5 denoiser.</figcaption>
+  </figure>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="images/partB/1.2.1/denoise_epoch1.png" target="_blank"><img src="images/partB/1.2.1/denoise_epoch1.png" alt="Clean, noisy, and denoised test digits after epoch 1"></a>
+      <figcaption>Test set after epoch 1. Rows: clean, noisy (&sigma; = 0.5), denoised.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/1.2.1/denoise_epoch5.png" target="_blank"><img src="images/partB/1.2.1/denoise_epoch5.png" alt="Clean, noisy, and denoised test digits after epoch 5"></a>
+      <figcaption>Test set after epoch 5. Rows: clean, noisy (&sigma; = 0.5), denoised.</figcaption>
+    </figure>
+  </div>
+
+  <p>
+
+    It doesn't do too bad on sigma=0.5, even after just 1 epoch the
+    denoised images are still decipherable. After 5 epochs it does a pretty good
+    job of settling down on a digit. 
+
+  </p>
+
+  <h3>1.2.2 Out-of-Distribution Testing</h3>
+
+  <figure>
+    <a href="images/partB/1.2.2/ood_sigmas.png" target="_blank"><img src="images/partB/1.2.2/ood_sigmas.png" alt="Denoising one test digit at noise levels it was not trained on"></a>
+    <figcaption>Same test digit at &sigma; = 0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0. Top: noisy input. Bottom: denoised.</figcaption>
+  </figure>
+
+  <p>
+
+    It denoises pretty well but starts to fall apart when it gets too noisy,
+    incorporating artifacts into the final image. 
+
+  </p>
+
+  <h3>1.2.3 Denoising Pure Noise</h3>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="images/partB/1.2.3/pure_noise_epoch1.png" target="_blank"><img src="images/partB/1.2.3/pure_noise_epoch1.png" alt="Pure-noise denoiser outputs after epoch 1"></a>
+      <figcaption>After epoch 1. Top: input noise. Bottom: output.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/1.2.3/pure_noise_epoch5.png" target="_blank"><img src="images/partB/1.2.3/pure_noise_epoch5.png" alt="Pure-noise denoiser outputs after epoch 5"></a>
+      <figcaption>After epoch 5. Top: input noise. Bottom: output.</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <a href="images/partB/1.2.3/pure_noise_loss.png" target="_blank"><img src="images/partB/1.2.3/pure_noise_loss.png" alt="Training loss for the pure-noise denoiser"></a>
+    <figcaption>Training loss for the pure-noise denoiser.</figcaption>
+  </figure>
+
+  <p>
+
+    We can see that even after 5 epochs, the denoised images still end up looking like blobs.
+    If you notice closely, the blobs sort of look like the average between all the digits,
+    and you'd be correct. The reason for this is because of our loss function. Because our loss function
+    is the Mean Squared Error, it's trying to find the image that has the least error across all possible
+    images. This image turns out to be the the picture that's the average of all the digits, which is this blob. 
+    <br><br>
+    We can fix this by conditioning our model during the denoising process. 
+  </p>
+
+  <hr>
+
+  <!-- ================================================================ -->
+  <h2>Part 2: Training a Flow Matching Model</h2>
+
+  <h3>2.2 Training the Time-Conditioned UNet</h3>
+  <p>D = 64, batch size 64, Adam with initial learning rate 1e-2, exponential decay &gamma; = 0.1<sup>1/10</sup>, 10 epochs.</p>
+
+  <figure>
+    <a href="images/partB/2.2/time_fm_loss.png" target="_blank"><img src="images/partB/2.2/time_fm_loss.png" alt="Training loss for the time-conditioned UNet"></a>
+    <figcaption>Training loss for the time-conditioned UNet.</figcaption>
+  </figure>
+
+  <h3>2.3 Sampling from the Time-Conditioned UNet</h3>
+  <p>40 samples per checkpoint, 50 Euler steps, same seed for every grid.</p>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="images/partB/2.3/time_fm_epoch1.png" target="_blank"><img src="images/partB/2.3/time_fm_epoch1.png" alt="Time-conditioned samples after epoch 1"></a>
+      <figcaption>Epoch 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/2.3/time_fm_epoch5.png" target="_blank"><img src="images/partB/2.3/time_fm_epoch5.png" alt="Time-conditioned samples after epoch 5"></a>
+      <figcaption>Epoch 5.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/2.3/time_fm_epoch10.png" target="_blank"><img src="images/partB/2.3/time_fm_epoch10.png" alt="Time-conditioned samples after epoch 10"></a>
+      <figcaption>Epoch 10.</figcaption>
+    </figure>
+  </div>
+
+  <p>
+
+    We can see that simply conditioning on time is not enough. Running in to the same
+    problem that we've continued to run into, the model is simply heading toward the average
+    of all possible images, making another nonsensical blob. It doesn't know whether to make a
+    1, or 2, or 5 etc. So it tries to make all of them and ends up failing. Simply conditioning
+    on time is not enough.  
+
+  </p>
+
+  <h3>2.5 Training the Class-Conditioned UNet</h3>
+  <p>
+    D = 64, batch size 64, class dropout p<sub>uncond</sub> = 0.1, 10 epochs. With scheduler: Adam starting at 1e-2,
+    exponential decay &gamma; = 0.1<sup>1/10</sup>.
+  </p>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="images/partB/2.5/loss_sched.png" target="_blank"><img src="images/partB/2.5/loss_sched.png" alt="Class-conditioned training loss with scheduler"></a>
+      <figcaption>Training loss with the exponential scheduler.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/2.6_lr1e-2/loss_no_sched_lr1e-2.png" target="_blank"><img src="images/partB/2.6_lr1e-2/loss_no_sched_lr1e-2.png" alt="Class-conditioned training loss without scheduler"></a>
+      <figcaption>Training loss without a scheduler (constant lr = 1e-2).</figcaption>
+    </figure>
+  </div>
+
+  <h3>2.6 Sampling from the Class-Conditioned UNet</h3>
+  <p>4 instances of each digit, 300 Euler steps, guidance scale &gamma; = 5, same seed for every grid.</p>
+
+  <h4>With the learning rate scheduler</h4>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="images/partB/2.6/sched_epoch1.png" target="_blank"><img src="images/partB/2.6/sched_epoch1.png" alt="Class-conditioned samples with scheduler, epoch 1"></a>
+      <figcaption>Epoch 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/2.6/sched_epoch5.png" target="_blank"><img src="images/partB/2.6/sched_epoch5.png" alt="Class-conditioned samples with scheduler, epoch 5"></a>
+      <figcaption>Epoch 5.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/2.6/sched_epoch10.png" target="_blank"><img src="images/partB/2.6/sched_epoch10.png" alt="Class-conditioned samples with scheduler, epoch 10"></a>
+      <figcaption>Epoch 10.</figcaption>
+    </figure>
+  </div>
+
+  <h4>Without the learning rate scheduler (lr = 1e-2)</h4>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="images/partB/2.6_lr1e-2/no_sched_lr1e-2_epoch1.png" target="_blank"><img src="images/partB/2.6_lr1e-2/no_sched_lr1e-2_epoch1.png" alt="Class-conditioned samples, constant lr 1e-2, epoch 1"></a>
+      <figcaption>Epoch 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/2.6_lr1e-2/no_sched_lr1e-2_epoch5.png" target="_blank"><img src="images/partB/2.6_lr1e-2/no_sched_lr1e-2_epoch5.png" alt="Class-conditioned samples, constant lr 1e-2, epoch 5"></a>
+      <figcaption>Epoch 5.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/2.6_lr1e-2/no_sched_lr1e-2_epoch10.png" target="_blank"><img src="images/partB/2.6_lr1e-2/no_sched_lr1e-2_epoch10.png" alt="Class-conditioned samples, constant lr 1e-2, epoch 10"></a>
+      <figcaption>Epoch 10.</figcaption>
+    </figure>
+  </div>
+
+  <p>
+    First I removed the scheduler and kept the initial learning rate of 1e-2 for all 10 epochs,
+    with everything else unchanged.
+  </p>
+
+  <p>
+
+    If you notice, you can see that without the scheduler and keeping the same learning rate,
+    some random artifacts start to appear in the final image as we have more epochs. This doesn't make a lot 
+    of sense, by 10 epochs we should end in a clean image. This happens because our learning rate is
+    too high. Every time we optimize, the weights move proportional to our learning rate, since 
+    our learning rate is sort of high, our weights keep jumping around and never settle. This causes
+    these artifacts to spawn in.
+    <br><br>
+    If you think about it in terms of a loss landscape, it's like we're going around the minimum
+    without actually settling on it, leading to these imperfections. 
+
+  </p>
+
+  <h4>Removing the scheduler, attempt 2: constant lr = 1e-3</h4>
+  <p>
+    To compensate for losing the scheduler, I lowered the constant learning rate to 1e-3, the value the scheduler
+    decays to by the end of training.
+
+    <figure>
+      <a href="images/partB/2.5/loss_no_sched.png" target="_blank"><img src="images/partB/2.5/loss_no_sched.png" alt="Time-conditioned samples after epoch 1"></a>
+      <figcaption>learning rate 1e-3</figcaption>
+    </figure>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="images/partB/2.6/no_sched_epoch1.png" target="_blank"><img src="images/partB/2.6/no_sched_epoch1.png" alt="Class-conditioned samples without scheduler, constant lr 1e-3, epoch 1"></a>
+      <figcaption>Epoch 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/2.6/no_sched_epoch5.png" target="_blank"><img src="images/partB/2.6/no_sched_epoch5.png" alt="Class-conditioned samples without scheduler, constant lr 1e-3, epoch 5"></a>
+      <figcaption>Epoch 5.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/partB/2.6/no_sched_epoch10.png" target="_blank"><img src="images/partB/2.6/no_sched_epoch10.png" alt="Class-conditioned samples without scheduler, constant lr 1e-3, epoch 10"></a>
+      <figcaption>Epoch 10.</figcaption>
+    </figure>
+  </div>
+
+  <p>
+    
+    By lowering the training rate, our weights are actually able to settle on the minimum, making our end image 
+    more accurate and devoid of artifacts.  
+  
+  </p>
+
+  <hr>
+
+  <h2>Takeaways</h2>
+
+  <p>
+
+    I think the biggest takeaway that I got from this project is that I actually learned
+    how diffusion works and it helps me better understand the technologies that I use on a daily basis.
+    I feel like the idea behind diffusion is very applicable to other fields and not just image generation,
+    for example I know that it's used in Vision Action Models to obtain joint trajectories.
+    <br><br>
+    Even though this whole process and the examples that we've done are pretty simple, it's pretty  
+    amazing to think about how much people have scaled it up by. It's also crazy to think about
+    the amount of time spent training and processing these models, even just the few trainings and images
+    I generated took a combined total of a couple hours. So I couldn't imagine how long it took
+    the industry level models to be trained. 
+
+  </p>
+
+</main>
+
+</body>
+</html>
