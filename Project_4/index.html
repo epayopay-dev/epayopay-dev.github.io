@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project 4 &middot; CS 180 Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<!-- ===== NAV (same on every page; change the href depth per folder) ===== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-title" href="../index.html">CS 180 Portfolio</a>
+    <a class="nav-link" href="../Project_1/index.html">Project 1</a>
+    <a class="nav-link" href="../Project_2/index.html">Project 2</a>
+    <a class="nav-link" href="../Project_3/index.html">Project 3</a>
+    <a class="nav-link active" href="./index.html">Project 4</a>
+  </div>
+</nav>
+
+<main class="post">
+
+  <!-- ===== TITLE BLOCK ===== -->
+  <h1 class="post-title">Project 4: Image Warping and Mosaicing</h1>
+  <div class="byline">
+    <p class="post-meta">Erson Payopay</p>
+    <img class="avatar" src="../images/me.jpg" alt="Erson Payopay">
+  </div>
+
+  <!--
+    HOW TO FILL THIS IN
+    - Each <div class="todo"> is a blank write-up box for a deliverable that asks you to
+      explain or compare something. Replace the whole <div class="todo">...</div> with your own <p>...</p>.
+    - Each <div class="todo missing"> marks an image the project asks for. Replace it with a
+      <figure> inside the surrounding image-grid once you have the image, e.g.
+        <figure>
+          <a href="images/A.1/set1_left.jpg" target="_blank"><img src="images/A.1/set1_left.jpg" alt="..."></a>
+          <figcaption>...</figcaption>
+        </figure>
+    - Images are shown all at once in an image-grid (no carousels). Change cols-N to fit.
+    - Click any image on the page to open it full size.
+  -->
+
+  <!-- ================================================================ -->
+  <!-- ========================== PART A ============================== -->
+  <!-- ================================================================ -->
+  <h2>Part A: Image Warping and Mosaicing</h2>
+
+  <p>
+    Intro: a short overview of part A. Take two or more photos, recover the homographies between them,
+    warp them into alignment, and blend them into a mosaic.
+
+    For this part, our goal is to warp multiple images, then stitch them together to make a nice mosaic at the end!
+    First, we can take two pictures of the same scene but rotating a little bit between each photo. Then, we can find the homography
+    by finding correspondences between the images, then use that homography by applying interpolation and transforming the second image
+    to fit onto a source image. Finally, we can compile all of these images onto one large photo and use some blending techniques to make it look
+    pretty!
+  </p>
+
+  <!-- ================================================================ -->
+  <h2>A.1 Shoot the Pictures</h2>
+
+  <p>
+    
+    I shot these photos by simply rotating my camera slightly between each one, making sure not to move it. This is because if we translate the center of projection (camera)
+    in any way, it makes it so the homography might not work. The homography is a mapping from pixel coordinates in one image to another, if we add a translation
+    that changes the depth between images in some way, it's going to mess with our mapping. This is because the shift of a pixel also depends on its depth,
+    so if we have varying depth between images, a single mapping cannot map to both depths. 
+    
+    <br><br>
+    
+    I chose to shoot here because there's a lot of features to pick correspondences with (grid in building, people who I asked to stay still, park with benches and 
+    other sharp edges). They are also all just places I'm at in my daily life.   
+
+  </p>
+
+  <h3>Set 1: Hanging out in Brian's living room</h3>
+
+  <div class="image-grid cols-4">
+    <figure>
+      <a href="images/part1images/IMG_0618.jpg" target="_blank"><img src="images/part1images/IMG_0618.jpg" alt="Living room, photo 1 of 4"></a>
+      <figcaption>Photo 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0619.jpg" target="_blank"><img src="images/part1images/IMG_0619.jpg" alt="Living room, photo 2 of 4"></a>
+      <figcaption>Photo 2.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0620.jpg" target="_blank"><img src="images/part1images/IMG_0620.jpg" alt="Living room, photo 3 of 4"></a>
+      <figcaption>Photo 3.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0621.jpg" target="_blank"><img src="images/part1images/IMG_0621.jpg" alt="Living room, photo 4 of 4"></a>
+      <figcaption>Photo 4.</figcaption>
+    </figure>
+  </div>
+
+  <h3>Set 2: Soda Hall at night, coming back from lab</h3>
+
+  <div class="image-grid cols-4">
+    <figure>
+      <a href="images/part1images/IMG_0623.jpg" target="_blank"><img src="images/part1images/IMG_0623.jpg" alt="Building at night, photo 1 of 4"></a>
+      <figcaption>Photo 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0624.jpg" target="_blank"><img src="images/part1images/IMG_0624.jpg" alt="Building at night, photo 2 of 4"></a>
+      <figcaption>Photo 2.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0625.jpg" target="_blank"><img src="images/part1images/IMG_0625.jpg" alt="Building at night, photo 3 of 4"></a>
+      <figcaption>Photo 3.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0626.jpg" target="_blank"><img src="images/part1images/IMG_0626.jpg" alt="Building at night, photo 4 of 4"></a>
+      <figcaption>Photo 4.</figcaption>
+    </figure>
+  </div>
+
+  <h3>Set 3: A Park!</h3>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="images/part1images/IMG_0632.jpg" target="_blank"><img src="images/part1images/IMG_0632.jpg" alt="Park, photo 1 of 2"></a>
+      <figcaption>Photo 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0633.jpg" target="_blank"><img src="images/part1images/IMG_0633.jpg" alt="Park, photo 2 of 2"></a>
+      <figcaption>Photo 2.</figcaption>
+    </figure>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>A.2 Recover Homographies</h2>
+
+  <p>
+
+    To compute the homography, we build a system of equations! How do we do this? Well we know the homography is a 3x3 matrix (3x3 since it transforms homogeneous coords)
+    and we also know that the last term is 1 (can only recover homographies up to a scale, can just set it to 1). That leaves us with 8 unknowns. And we know that: 
+    <br><br>
+    
+    H^(3x3) * [x1, y1, 1]^T = [x2, y2, z]^T
+
+    <br><br>
+
+    We know both the original image coords and the resultant image coords, we just want to solve for H.
+    What we can do is multiply and expand out, and since h33 is just 1 we can take the final x2 and y2 term and move them on
+    the other side.
+
+    </p>
+
+    <div class="image-grid cols-1">
+      <figure>
+        <a href="images/equation/equations.png" target="_blank"><img src="images/equation/equations.png" alt="equations"></a>
+      </figure>
+    </div>
+  
+    <p>
+
+      We also divide by the scale factor to get the normalized x2 and y2. 
+      I got that from this YT video <a href="https://www.youtube.com/watch?v=l_qjO4cM74o">here</a>. But from here if you sub in 1 for h33, multiply out and isolate x2 and y2 (xd and yd in the picture)
+      onto one side, and then organize the h values into a row vector we can get the general form: 
+
+    <div class="image-grid cols-1">
+      <figure>
+        <a href="images/equation/generalform.png" target="_blank"><img src="images/equation/generalform.png" alt="equations"></a>
+      </figure>
+    </div>
+
+    </p>
+
+    <p>
+
+      Ultimately, we get a linear equation with the form Ah = b, where A is matrix composed of 1s, 0s, and points between
+      our images, h is our homography, and b is the coordinates after the transformation. From there we can take the least squares
+      estimate to find h. 
+
+      <br><br>
+
+      Below, you can also see my correspondences. I didn't really have any specific reason for choosing them, but I did focus on picking sharp edges
+      and pixels with little ambiguity. For example, I stayed away from picking rounded edges, and I chose the corners of some of the benches and basketball courts.
+
+
+    </p>
+
+
+  <h3>System of Equations, values using the park correspondences</h3>
+
+    <div class="image-grid cols-1">
+      <figure>
+        <a href="images/equation/fullequation.png" target="_blank"><img src="images/equation/fullequation.png" alt="equations"></a>
+      </figure>
+    </div>
+
+  <h3>Correspondences</h3>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="images/part2images/Screenshot%202026-10-28%20at%204.16.44%E2%80%AFAM.jpg" target="_blank"><img src="images/part2images/Screenshot%202026-10-28%20at%204.16.44%E2%80%AFAM.jpg" alt="Correspondences marked on image 1"></a>
+      <figcaption>Correspondences on image 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part2images/Screenshot%202026-10-28%20at%204.16.54%E2%80%AFAM.jpg" target="_blank"><img src="images/part2images/Screenshot%202026-10-28%20at%204.16.54%E2%80%AFAM.jpg" alt="Correspondences marked on image 2"></a>
+      <figcaption>Correspondences on image 2.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part2images/Screenshot%202026-10-28%20at%204.17.23%E2%80%AFAM.jpg" target="_blank"><img src="images/part2images/Screenshot%202026-10-28%20at%204.17.23%E2%80%AFAM.jpg" alt="Close-up of the correspondences on image 1, circled in green"></a>
+      <figcaption>Close-up of image 1's points (circled in green).</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part2images/Screenshot%202026-10-28%20at%204.17.30%E2%80%AFAM.jpg" target="_blank"><img src="images/part2images/Screenshot%202026-10-28%20at%204.17.30%E2%80%AFAM.jpg" alt="Close-up of the correspondences on image 2, circled in green"></a>
+      <figcaption>Close-up of image 2's points (circled in green).</figcaption>
+    </figure>
+  </div>
+
+  <h3>Recovered Homography</h3>
+
+    <div class="image-grid cols-1">
+      <figure>
+        <a href="images/equation/recoveredhomography.png" target="_blank"><img src="images/equation/recoveredhomography.png" alt="equations"></a>
+      </figure>
+    </div>
+
+  <!-- ================================================================ -->
+  <h2>A.3 Warp the Images</h2>
+
+  <p>
+
+    How does nearest neighbor and bilinear interpolation work? Well its actually pretty simple.
+    We start with a grid of coordinates that represent the destination image (same size as source image usually). From there,
+    we can take each coordinate and multiply it by the inverse homography to see where it lands in the source image.
+
+    <br><br>
+
+    Now, we can just set the pixel value at the destination image as the pixel value sampled from the source image. Since the source image 
+    is not guarenteed to be an integer and may land in between pixels, we can simply round the coordinates it ends up in and sample from there. 
+    Since rounding gets the nearest coordinate, it makes this nearest neighbor interpolation.
+
+    <br><br>
+
+    Bilinear interpolation is a lot more complicated. Based on where the pixel lands, we can find the distances 
+    between each of the four corners which are actual integer values. With those distances, we can create rectangular areas, where a pixels'
+    contribution is the rectangle formed opposite from the sampled point (since we want the pixel that the mapping is closest to to have the biggest contribution,
+    so we take the rectangle formed opposite of it since that is the rectangle with the largest area). Once we know the contributions of each pixel,
+    we can just multiply those weights by the pixel values in the source image and add those together to get the final image. 
+
+    <br><br>
+
+    There's some other stuff I have too such as masking the pixels that get sourced to outside the image, and also clipping the indices 
+    to prevent indexing errors which are methods shown in both interpolations. 
+    
+  </p>
+
+  <h3>Rectification 1: Cube</h3>
+
+  <div class="image-grid cols-4">
+    <figure>
+      <a href="images/rectified%20images/cubeangled.jpg" target="_blank"><img src="images/rectified%20images/cubeangled.jpg" alt="Cube photographed at an angle"></a>
+      <figcaption>Original, taken at an angle.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/rectified%20images/cubeflat.jpg" target="_blank"><img src="images/rectified%20images/cubeflat.jpg" alt="Cube photographed from directly above"></a>
+      <figcaption>Reference, taken from directly above.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/rectified%20images/cubenn.jpg" target="_blank"><img src="images/rectified%20images/cubenn.jpg" alt="Cube rectified with nearest neighbor interpolation"></a>
+      <figcaption>Rectified, nearest neighbor.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/rectified%20images/cubebilinear.jpg" target="_blank"><img src="images/rectified%20images/cubebilinear.jpg" alt="Cube rectified with bilinear interpolation"></a>
+      <figcaption>Rectified, bilinear.</figcaption>
+    </figure>
+  </div>
+
+  <h3>Rectification 2: PCB</h3>
+
+  <div class="image-grid cols-4">
+    <figure>
+      <a href="images/rectified%20images/pcbangled.jpg" target="_blank"><img src="images/rectified%20images/pcbangled.jpg" alt="Circuit board photographed at an angle"></a>
+      <figcaption>Original, taken at an angle.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/rectified%20images/pcbflat.jpg" target="_blank"><img src="images/rectified%20images/pcbflat.jpg" alt="Circuit board photographed from directly above"></a>
+      <figcaption>Reference, taken from directly above.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/rectified%20images/pcbnn.jpg" target="_blank"><img src="images/rectified%20images/pcbnn.jpg" alt="Circuit board rectified with nearest neighbor interpolation"></a>
+      <figcaption>Rectified, nearest neighbor.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/rectified%20images/pcbbilinear.jpg" target="_blank"><img src="images/rectified%20images/pcbbilinear.jpg" alt="Circuit board rectified with bilinear interpolation"></a>
+      <figcaption>Rectified, bilinear.</figcaption>
+    </figure>
+  </div>
+
+  <h3>Nearest Neighbor vs. Bilinear</h3>
+
+  <figure>
+    <a href="images/rectified%20images/bilinearnncomparison.png" target="_blank"><img src="images/rectified%20images/bilinearnncomparison.png" alt="Zoomed-in crop of the rectified PCB, bilinear on the left and nearest neighbor on the right"></a>
+    <figcaption>Zoomed-in crop of the rectified PCB. Left: bilinear. Right: nearest neighbor.</figcaption>
+  </figure>
+
+  <figure>
+    <a href="images/rectified%20images/timecomparison.png" target="_blank"><img src="images/rectified%20images/timecomparison.png" alt="Timing code and output: bilinear 0.429 s, nearest neighbor 0.108 s"></a>
+    <figcaption>Timing both warps on the cube: bilinear took 0.429 s, nearest neighbor took 0.108 s.</figcaption>
+  </figure>
+
+  <p>
+
+    Zooming in, we can tell the difference between the nearest neighbors interpolation and the bilinear interpolation. The bilinear interpolation
+    is much more smoother compared to the nearest neighbor interpolation. This is because the bilinear interpolation takes the average of the surrounding
+    pixels while nearest neighbor just inherits its nearest pixels value back in the source image. Since bilinear interpolation takes the average, it acts as a low pass
+    filter in a way, smoothing the output. In return, the bilinear interpolation is four times as slow (makes sense since you have to deal with 4x as many pixels). 
+
+    <br><br>
+
+    Bilinear interpolation was also a lot more harder to implement.
+
+  </p>
+
+  <!-- ================================================================ -->
+  <h2>A.4 Blend the Images into a Mosaic</h2>
+
+  <p>
+
+    Now, we basically have all the components we need to create a mosaic. We can take one image as
+    the reference image, and then warp the other images to it by finding the homography between them. 
+    Once we do that, we can just map all of them onto a larger blank image and line them up to fit within our bounding box. Once they all fit, 
+    we can apply the multiresolution blending (with two stacks as listed in the project page) we used in Project 2. 
+
+    <br><br>
+
+    Here are the results!!!
+
+  </p>
+
+  <h3>Mosaic 1: Brian's Room</h3>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="images/part1images/IMG_0619.jpg" target="_blank"><img src="images/part1images/IMG_0619.jpg" alt="Brian's room, source photo 2 of 4"></a>
+      <figcaption>Source 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0620.jpg" target="_blank"><img src="images/part1images/IMG_0620.jpg" alt="Brian's room, source photo 3 of 4"></a>
+      <figcaption>Source 2.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0621.jpg" target="_blank"><img src="images/part1images/IMG_0621.jpg" alt="Brian's room, source photo 4 of 4"></a>
+      <figcaption>Source 3.</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <a href="images/mosaics/brianroomsmosaic.jpg" target="_blank"><img src="images/mosaics/brianroomsmosaic.jpg" alt="Mosaic of Brian's room stitched from four photos"></a>
+    <figcaption>The finished mosaic.</figcaption>
+  </figure>
+
+  <h3>Mosaic 2: Soda Hall</h3>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="images/part1images/IMG_0624.jpg" target="_blank"><img src="images/part1images/IMG_0624.jpg" alt="Soda Hall at night, source photo 2 of 4"></a>
+      <figcaption>Source 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0625.jpg" target="_blank"><img src="images/part1images/IMG_0625.jpg" alt="Soda Hall at night, source photo 3 of 4"></a>
+      <figcaption>Source 2.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part1images/IMG_0626.jpg" target="_blank"><img src="images/part1images/IMG_0626.jpg" alt="Soda Hall at night, source photo 4 of 4"></a>
+      <figcaption>Source 3.</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <a href="images/mosaics/sodahall.jpg" target="_blank"><img src="images/mosaics/sodahall.jpg" alt="Mosaic of Soda Hall at night stitched from four photos"></a>
+    <figcaption>The finished mosaic.</figcaption>
+  </figure>
+
+  <h3>Mosaic 3: Park</h3>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="images/part2images/Screenshot%202026-10-28%20at%204.16.44%E2%80%AFAM.jpg" target="_blank"><img src="images/part2images/Screenshot%202026-10-28%20at%204.16.44%E2%80%AFAM.jpg" alt="Park, source photo 1 of 2"></a>
+      <figcaption>Source 1 (same images as the A.2 correspondences).</figcaption>
+    </figure>
+    <figure>
+      <a href="images/part2images/Screenshot%202026-10-28%20at%204.16.54%E2%80%AFAM.jpg" target="_blank"><img src="images/part2images/Screenshot%202026-10-28%20at%204.16.54%E2%80%AFAM.jpg" alt="Park, source photo 2 of 2"></a>
+      <figcaption>Source 2.</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <a href="images/mosaics/parkmosaic.jpg" target="_blank"><img src="images/mosaics/parkmosaic.jpg" alt="Mosaic of the park stitched from two photos"></a>
+    <figcaption>The finished mosaic.</figcaption>
+  </figure>
+
+  <h2>Takeaways</h2>
+
+  <p>
+
+    I think the greatest takeaway I got from this class is how a homography and bilinear interpolation works.
+    Because I had an assignment in CS189 where I had to implement bilinear interpolation but I didn't really understand what 
+    I was doing, and also the way we did it was sort of chud because we did the forward transformation which left a bunch of holes.
+    But overall, I think it's really cool and the ideas used in this project I feel like are very applicable.
+    However, I'm mainly looking forward to then next part of the project where we use RANSAC and feature matching,
+    because I've been using that in my robotics class and it's cool to see it used in another one of my classes. I also really enjoyed
+    Prof. Efros' lecture on that section because it was really easy to digest. 
+
+  </p>
+
+</main>
+
+</body>
+</html>
