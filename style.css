@@ -244,6 +244,7 @@ figcaption {
 .image-grid.cols-1 { --cols: 1; }
 .image-grid.cols-3 { --cols: 3; }
 .image-grid.cols-4 { --cols: 4; }
+.image-grid.cols-5 { --cols: 5; }
 
 .image-grid figure { margin: 0; }
 

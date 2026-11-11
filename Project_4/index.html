@@ -399,7 +399,7 @@
     <figcaption>The finished mosaic.</figcaption>
   </figure>
 
-  <h2>Takeaways</h2>
+  <h2>Part A Takeaways</h2>
 
   <p>
 
@@ -409,7 +409,249 @@
     But overall, I think it's really cool and the ideas used in this project I feel like are very applicable.
     However, I'm mainly looking forward to then next part of the project where we use RANSAC and feature matching,
     because I've been using that in my robotics class and it's cool to see it used in another one of my classes. I also really enjoyed
-    Prof. Efros' lecture on that section because it was really easy to digest. 
+    Prof. Efros' lecture on that section because it was really easy to digest.
+
+  </p>
+
+  <hr>
+
+  <!-- ================================================================ -->
+  <!-- ========================== PART B ============================== -->
+  <!-- ================================================================ -->
+  <h2>Part B: Feature Matching for Autostitching</h2>
+
+  <p>
+
+    Hey it's part B! What do we do here? Well all the manual point finding that we did in part A we're trying to automate! Isn't that fun! The process is actually pretty interesting
+    and it's basically getting a bunch of points and running them through a series of rigorous filters to make sure they're the right points. First, we can apply Harris corner
+    detection to get a bunch of corners that we can use as possible points. We threshold those to only keep points that have a certain intensity change. The points that get
+    past the filter we apply adaptive non maximal suppression to spread them out evenly around the image. After we spread the points out, we take a patch around that point
+    and turn that into a feature descriptor, or basically a vector. Once we have our feature desciptor, we apply the same process to another image and try to 
+    match feature descriptors together, filtering out the ones that don't match well enough. Once we have all of that, we finally run those points through RANSAC to try and get a
+    best match of points. Once we're set on our points, we can apply the same processes we did in part A to get a final mosaic!
+
+  </p>
+
+  <!-- ================================================================ -->
+  <h2>B.1 Harris Corner Detection</h2>
+
+  <p>
+
+    How does the Harris detector work? The Harris detector works by sliding a convolution over the image and seeing where the intensity changes 
+    the most in all directions. Since a true corner would do so. An edge would only change in one direction. Thankfully, the project
+    page has some starter code that provides some very useful functions for us, including a harris detector function! Once we have our intensity changes through,
+    we can threshold all the points. You can see that with a threshold of only 400, a lot of points start to show through. With a 10k threshold a reasonable amount of
+    points come through. I actually had some trouble with this and eventually kept my threshold at 400 since a 10k threshold concentrated the points too much and it 
+    made ANMS worthless
+
+    <br><br>
+
+    Check them out below! Also I didn't know you can change the dot size until later. 
+
+    <br><br>
+
+    Now for the ANMS step! How it works is that we want a very strong point to suppress other points surrounding it. What we can do is for each point, find the intensity
+    of the points surrounding it. Then what we can do is mark down the distance that point has to go (basically radius) to find a point that has a higher intensity 
+    than itself. Now, we can sort the points by their radius with larger radii being first in the list. Finally, we can cull points past a certain number, so with our list of
+    points only keep the first couple hundred or so. I decided on choosing 500 because I remember seeing it in lecture or like the same number in the original MOPS paper.
+    Check out how it works! It successfully distributes the points evenly across the image, with the strong points being kept and clusters of points being eliminated.  
+
+  </p>
+
+  <h3>Harris Corners (without ANMS)</h3>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="imagespt2/pt1/10kthresh.jpg" target="_blank"><img src="imagespt2/pt1/10kthresh.jpg" alt="Harris corners with threshold 10,000 overlaid on the image"></a>
+      <figcaption>Harris corners, threshold = 10k.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/pt1/400thresh.jpg" target="_blank"><img src="imagespt2/pt1/400thresh.jpg" alt="Harris corners with threshold 400 overlaid on the image"></a>
+      <figcaption>Harris corners, threshold = 400.</figcaption>
+    </figure>
+  </div>
+
+  <h3>After ANMS</h3>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="imagespt2/pt1/anms10kthresh.jpg" target="_blank"><img src="imagespt2/pt1/anms10kthresh.jpg" alt="Corners kept by ANMS, threshold 10,000"></a>
+      <figcaption>ANMS, threshold = 10k.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/pt1/anms400thresh.jpg" target="_blank"><img src="imagespt2/pt1/anms400thresh.jpg" alt="Corners kept by ANMS, threshold 400"></a>
+      <figcaption>ANMS, threshold = 400.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/pt1/anms950thresh.jpg" target="_blank"><img src="imagespt2/pt1/anms950thresh.jpg" alt="Corners kept by ANMS, threshold 950"></a>
+      <figcaption>ANMS, threshold = 950.</figcaption>
+    </figure>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>B.2 Feature Descriptor Extraction</h2>
+
+  <p>
+
+    Now that we have our set of points, how do we try to find matches between iamges? What we do is for each point, we can take a patch surrounding it. 
+    Once we get that patch, we just blur, downsample, normalize, and then flatten it to create a vector. We downsample by 5 because we start with a 40x40 image and
+    want to go down to 5x5. Then we can normalize a patch by subtracting the mean of the patch and dividing by its standard deviation. Then flatten it to just make a vector.
+    Finally, we can obtain a set of feature desciptors to compare between different images!
+
+  </p>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="imagespt2/pt2/im_patch.png" target="_blank"><img src="imagespt2/pt2/im_patch.png" alt="A 40 by 40 window around a corner"></a>
+      <figcaption>The 40&times;40 window around a corner.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/pt2/small_normalized_patch.png" target="_blank"><img src="imagespt2/pt2/small_normalized_patch.png" alt="The window downsampled to a normalized 8 by 8 descriptor"></a>
+      <figcaption>Downsampled to a normalized 8&times;8 descriptor.</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <a href="imagespt2/pt2/img_descriptor_pairs.png" target="_blank"><img src="imagespt2/pt2/img_descriptor_pairs.png" alt="Seven normalized 8 by 8 descriptors, each next to the window it was sampled from"></a>
+    <figcaption>Seven extracted features: each normalized 8&times;8 descriptor (Set A) next to the window it came from (Set B).</figcaption>
+  </figure>
+
+  <!-- ================================================================ -->
+  <h2>B.3 Feature Matching</h2>
+
+  <p>
+
+    We can find the match desciptors between images by doing nearest neighbors and taking the classic L2 distance between the two feature descriptors! 
+    We can utilize the handy dandy dist2 function to make a grid of L2 distances between the two feature arrays and getting the ones that are the closest together through sorting. 
+    After that, we compute the ratio between the first nearest neighbor and the second nearest neighbor and keep ones with a high ratio between them. We do this because
+    if the first nearest neighbor is super high compared to its second one, then we can have a high confidence that that point is the correct correspondence. If the ratio
+    is very low, that means the confidence is not that high and it could be like a cluster of nearby points or just two points that happen to look similar. 
+
+    <br><br>
+
+    I ended up picking a threshold of 0.7 because I think in the original SIFT paper they used 0.8, but I chose it to be a little stricter so 0.7 it is.
+
+  </p>
+
+  <figure>
+    <a href="imagespt2/pt3/matches.jpg" target="_blank"><img src="imagespt2/pt3/matches.jpg" alt="Matched features between two photos of Alvin"></a>
+    <figcaption>Matched features between Alvin 1 and Alvin 2.</figcaption>
+  </figure>
+
+  <!-- ================================================================ -->
+  <h2>B.4 RANSAC for Robust Homography</h2>
+
+  <p>
+
+    RANSAC, the best part! I actually used this for 106a but tbh I didn't really know how it worked until now, and it's pretty cool! For a randomly sampled
+    algorithm it actually performs very well. How it works is that it randomly selects a set of points (in this case 4 points), and then we can compute a homography from that.
+    Once we get that homography, we transform all possible matches with that homography and see how many points line up between images! We save the number of matches (inliers) and continue 
+    randomly sampling points and finding homographies. After a set amount of iterations doing this, we save the points and homography that resulted in the highest number of inliers. 
+    Now we can use this set of points to create the mosaics we did in part A!
+
+    <br><br>
+
+    My inlier threshold is 2.0, so after being transformed a pixel has to land within a 2.0 distance of where it's supposed to be. Also my number of RANSAC iterations is 2000
+    to really be sure that I have a good set of points. I don't really think I need that much, but RANSAC is random and it's best to be prepared, and to be honest
+    this assignment is due in like 20 mins and I'm too lazy to iterate through different RANSAC iteration numbers, 2000 was just a number I searched up online. 
+
+  </p>
+
+  <h3>Mosaic 1: Aldrich</h3>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="imagespt2/aldrich1.jpg" target="_blank"><img src="imagespt2/aldrich1.jpg" alt="Aldrich, source photo 1 of 3"></a>
+      <figcaption>Source 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/aldrich2.jpg" target="_blank"><img src="imagespt2/aldrich2.jpg" alt="Aldrich, source photo 2 of 3"></a>
+      <figcaption>Source 2.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/aldrich3.jpg" target="_blank"><img src="imagespt2/aldrich3.jpg" alt="Aldrich, source photo 3 of 3"></a>
+      <figcaption>Source 3.</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <a href="imagespt2/pts4/aldrichmosaic.jpg" target="_blank"><img src="imagespt2/pts4/aldrichmosaic.jpg" alt="Automatic mosaic of Aldrich"></a>
+    <figcaption>Automatic mosaic.</figcaption>
+  </figure>
+
+  <h3>Mosaic 2: Alvin</h3>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="imagespt2/alvin2.jpg" target="_blank"><img src="imagespt2/alvin2.jpg" alt="Alvin, source photo 2 of 5"></a>
+      <figcaption>Source 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/alvin3.jpg" target="_blank"><img src="imagespt2/alvin3.jpg" alt="Alvin, source photo 3 of 5"></a>
+      <figcaption>Source 2.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/alvin4.jpg" target="_blank"><img src="imagespt2/alvin4.jpg" alt="Alvin, source photo 4 of 5"></a>
+      <figcaption>Source 3.</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <a href="imagespt2/pts4/alvinfinalmosaic.jpg" target="_blank"><img src="imagespt2/pts4/alvinfinalmosaic.jpg" alt="Automatic mosaic of Alvin"></a>
+    <figcaption>Automatic mosaic.</figcaption>
+  </figure>
+
+  <h3>Mosaic 3: Cory Hall</h3>
+
+  <div class="image-grid cols-3">
+    <figure>
+      <a href="imagespt2/cory1.jpg" target="_blank"><img src="imagespt2/cory1.jpg" alt="Cory Hall, source photo 1 of 3"></a>
+      <figcaption>Source 1.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/cory2.jpg" target="_blank"><img src="imagespt2/cory2.jpg" alt="Cory Hall, source photo 2 of 3"></a>
+      <figcaption>Source 2.</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/cory3.jpg" target="_blank"><img src="imagespt2/cory3.jpg" alt="Cory Hall, source photo 3 of 3"></a>
+      <figcaption>Source 3.</figcaption>
+    </figure>
+  </div>
+
+  <figure>
+    <a href="imagespt2/pts4/corymosaic.jpg" target="_blank"><img src="imagespt2/pts4/corymosaic.jpg" alt="Automatic mosaic of the view from Cory Hall"></a>
+    <figcaption>Automatic mosaic.</figcaption>
+  </figure>
+
+  <h3>Manual vs. Automatic: Park</h3>
+
+  <div class="image-grid cols-2">
+    <figure>
+      <a href="images/mosaics/parkmosaic.jpg" target="_blank"><img src="images/mosaics/parkmosaic.jpg" alt="Park mosaic stitched from hand-picked correspondences"></a>
+      <figcaption>Manual (hand-picked points, from Part A).</figcaption>
+    </figure>
+    <figure>
+      <a href="imagespt2/parkautomosaic.jpg" target="_blank"><img src="imagespt2/parkautomosaic.jpg" alt="Park mosaic stitched automatically with feature matching and RANSAC"></a>
+      <figcaption>Automatic (feature matching + RANSAC).</figcaption>
+    </figure>
+  </div>
+
+  <p>
+
+    Honestly I thought I did pretty well with matching the park images together, but apparantly not and RANSAC and automatic feature matching is just goated like that. 
+    You can actually see a mistake that it makes in the hand picked homography near the bottom with the leaf being cut off, but in the automatic feature matching one the bottom
+    is fixed and the leaf is included. I'm assuming it's because I didn't really cover that part of the image in my handpicked points so that section of the image couldn't really
+    be accounted for in the homography. 
+
+  </p>
+
+  <h2>Part B Takeaways</h2>
+
+  <p>
+
+    I think the biggest thing I took away from this project was how RANSAC actually works and how ANMS works! I think it's really cool and I feel like this kind of knowledge / these kinds
+    of methods are applicable in other fields that I'm interested in. I mean like, I'm using RANSAC in robotics right now so it's fun to see the same topics in other classes that I'm in. 
+    Overall, very awesome project and it's due in like 8 mins holy crap.
 
   </p>
 
